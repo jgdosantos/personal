@@ -265,9 +265,10 @@ const App = () => {
 
       {/* Hero Section - Seamless Design */}
       <section className="relative min-h-[75vh] md:min-h-[80vh] flex items-center overflow-visible bg-white pt-24">
-        {/* Top-Right Decorative JG */}
-        <div className="absolute top-[2%] right-0 select-none pointer-events-none z-0 text-gray-200 text-[20vw] md:text-[35vw] font-black leading-none tracking-tighter opacity-10 md:opacity-30 uppercase overflow-hidden">
-          JG
+        <div className="absolute top-1/2 right-0 -translate-y-1/2 select-none pointer-events-none -z-10 overflow-hidden text-right leading-none">
+          <span className="block text-[30vw] font-black text-gray-300 opacity-20 tracking-tighter">
+            JG
+          </span>
         </div>
         {/* Name container with Parallax */}
         <div
