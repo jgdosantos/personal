@@ -131,8 +131,7 @@ const translations = {
       items: [
         { title: "Growth Marketing", subtitle: "Estratégia e Performance" },
         { title: "AI & Automation", subtitle: "Inteligência e Processos" },
-        { title: "Data Intelligence", subtitle: "Dados e Insights" },
-        { title: "Market Strategy", subtitle: "Estratégia Criativa" }
+        { title: "Funil de Vendas", subtitle: "Processos e Conversão" }
       ]
     },
     contact: {
@@ -195,8 +194,7 @@ const translations = {
       items: [
         { title: "Growth Marketing", subtitle: "Strategy & Performance" },
         { title: "AI & Automation", subtitle: "Intelligence & Processes" },
-        { title: "Data Intelligence", subtitle: "Data & Insights" },
-        { title: "Market Strategy", subtitle: "Creative Strategy" }
+        { title: "Sales Funnel", subtitle: "Processes & Conversion" }
       ]
     },
     contact: {
