@@ -126,27 +126,6 @@ const translations = {
         }
       ]
     },
-    interests: {
-      title: 'O Que Me Move',
-      items: [
-        {
-          title: "Growth Marketing",
-          description: "Escalando negócios com processo e método científico"
-        },
-        {
-          title: "Inteligência Artificial",
-          description: "Explorando IA e seu impacto no cotidiano profissional"
-        },
-        {
-          title: "Gestão & Estratégia",
-          description: "Desenvolvendo habilidades de liderança e empreendedorismo"
-        },
-        {
-          title: "Learning in Public",
-          description: "Compartilhando conhecimento com a comunidade"
-        }
-      ]
-    },
     philosophy: {
       title: "Comodidade com Honestidade",
       quote: "Levar comodidade com honestidade para o dia a dia das pessoas — essa é minha filosofia de trabalho e vida.",
@@ -202,27 +181,6 @@ const translations = {
         }
       ]
     },
-    interests: {
-      title: 'What Drives Me',
-      items: [
-        {
-          title: "Growth Marketing",
-          description: "Scaling businesses with process and scientific method"
-        },
-        {
-          title: "Artificial Intelligence",
-          description: "Exploring AI and its impact on professional daily life"
-        },
-        {
-          title: "Management & Strategy",
-          description: "Developing leadership and entrepreneurship skills"
-        },
-        {
-          title: "Learning in Public",
-          description: "Sharing knowledge with the community"
-        }
-      ]
-    },
     philosophy: {
       title: "Convenience with Honesty",
       quote: "Bringing convenience with honesty to people's daily lives — this is my work and life philosophy.",
@@ -242,9 +200,7 @@ const staticData = {
     { icon: Mail, label: "Email", url: "mailto:joao@example.com", color: "hover:text-red-400" },
   ],
   eventIcons: [Code, Lightbulb, BookOpen, Heart],
-  eventColors: ["bg-blue-500", "bg-yellow-500", "bg-purple-500", "bg-red-500"],
-  interestIcons: [Code, Lightbulb, Palette, Coffee],
-  interestColors: ["from-blue-500 to-cyan-500", "from-purple-500 to-pink-500", "from-orange-500 to-red-500", "from-amber-600 to-yellow-500"]
+  eventColors: ["bg-blue-500", "bg-yellow-500", "bg-purple-500", "bg-red-500"]
 };
 
 // ============================================
@@ -487,29 +443,6 @@ const App = () => {
               </div>
             ))}
           </div>
-        </div>
-      </section>
-
-      {/* Interests */}
-      <section id="work" className="max-w-6xl mx-auto px-6 py-12 md:py-16 bg-black">
-        <AnimatedSection>
-          <h2 className="text-center mb-16 text-white">{t.interests.title}</h2>
-        </AnimatedSection>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {t.interests.items.map((interest, index) => {
-            const Icon = staticData.interestIcons[index];
-            return (
-              <AnimatedSection key={index} className={`stagger-${index + 1}`}>
-                <div className="group bg-white/5 backdrop-blur-sm p-8 rounded-2xl shadow-lg hover:shadow-2xl transition-all hover:-translate-y-2 border border-white/10 h-full">
-                  <div className={`w-14 h-14 rounded-xl bg-gradient-to-br ${staticData.interestColors[index]} flex items-center justify-center mb-6 group-hover:scale-110 transition-transform`}>
-                    <Icon className="text-white" size={28} />
-                  </div>
-                  <h3 className="text-xl font-semibold text-white mb-3">{interest.title}</h3>
-                  <p className="text-gray-400">{interest.description}</p>
-                </div>
-              </AnimatedSection>
-            );
-          })}
         </div>
       </section>
 
