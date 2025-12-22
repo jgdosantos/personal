@@ -455,7 +455,7 @@ const App = () => {
             </h2>
             <a
               href={`mailto:${t.contact.email}`}
-              className="block text-4xl md:text-6xl lg:text-7xl font-black text-black hover:text-gray-600 transition-colors duration-300 break-words tracking-tighter"
+              className="block text-xl sm:text-2xl md:text-4xl lg:text-5xl font-light text-gray-900 hover:text-gray-500 transition-colors duration-300 tracking-tight break-all sm:break-normal text-center underline decoration-1 underline-offset-8 decoration-gray-300 hover:decoration-gray-500"
             >
               {t.contact.email}
             </a>
