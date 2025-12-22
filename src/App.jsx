@@ -249,7 +249,7 @@ const App = () => {
             {t.nav.about}
           </a>
           <a
-            href="#work"
+            href="#journey"
             className="text-black text-xs md:text-base font-medium tracking-wider hover:text-gray-600 transition-colors uppercase whitespace-nowrap"
           >
             {t.nav.work}
