@@ -126,6 +126,15 @@ const translations = {
         }
       ]
     },
+    toolkit: {
+      title: "Toolkit & Stack",
+      items: [
+        { title: "Growth Marketing", subtitle: "Estratégia e Performance" },
+        { title: "AI & Automation", subtitle: "Inteligência e Processos" },
+        { title: "Data Intelligence", subtitle: "Dados e Insights" },
+        { title: "Market Strategy", subtitle: "Estratégia Criativa" }
+      ]
+    },
     contact: {
       title: "Vamos construir algo juntos?",
       email: "joaogabrielsantosanjos@gmail.com",
@@ -179,6 +188,15 @@ const translations = {
           title: "Head of Growth Marketing",
           description: "Focused on performance and acquisition channels at Be Honest Brasil, where thanks to the team's work we managed to \"double in size\" in 1 year."
         }
+      ]
+    },
+    toolkit: {
+      title: "Toolkit & Stack",
+      items: [
+        { title: "Growth Marketing", subtitle: "Strategy & Performance" },
+        { title: "AI & Automation", subtitle: "Intelligence & Processes" },
+        { title: "Data Intelligence", subtitle: "Data & Insights" },
+        { title: "Market Strategy", subtitle: "Creative Strategy" }
       ]
     },
     contact: {
@@ -445,6 +463,27 @@ const App = () => {
             ))}
           </div>
         </div>
+      </section>
+
+      {/* Toolkit & Stack Section - Mobile Only */}
+      <section className="bg-black py-20 px-6 md:hidden">
+        <AnimatedSection>
+          <h2 className="text-white text-3xl font-black mb-12 uppercase tracking-tighter">
+            {t.toolkit.title}
+          </h2>
+          <div className="flex flex-col gap-10">
+            {t.toolkit.items.map((item, index) => (
+              <div key={index} className="border-b border-white/10 pb-6 last:border-0">
+                <h3 className="text-white text-2xl font-bold mb-1 tracking-tight">
+                  {item.title}
+                </h3>
+                <p className="text-gray-400 text-sm uppercase tracking-widest font-medium">
+                  {item.subtitle}
+                </p>
+              </div>
+            ))}
+          </div>
+        </AnimatedSection>
       </section>
 
       {/* Contact Section */}
