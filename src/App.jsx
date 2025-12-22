@@ -1,0 +1,559 @@
+import React, { useEffect, useRef, useState } from 'react';
+import { Github, Linkedin, Twitter, Mail, BookOpen, Code, Palette, Coffee, Heart, Lightbulb } from 'lucide-react';
+
+// Custom hook for scroll animations
+const useInView = (options = {}) => {
+  const ref = useRef(null);
+  const [isVisible, setIsVisible] = useState(false);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) {
+        setIsVisible(true);
+        observer.unobserve(entry.target);
+      }
+    }, { threshold: 0.1, ...options });
+
+    if (ref.current) {
+      observer.observe(ref.current);
+    }
+
+    return () => {
+      if (ref.current) {
+        observer.unobserve(ref.current);
+      }
+    };
+  }, []);
+
+  return [ref, isVisible];
+};
+
+// Animated component wrapper
+const AnimatedSection = ({ children, className = '', animation = 'animate-on-scroll' }) => {
+  const [ref, isVisible] = useInView();
+  return (
+    <div ref={ref} className={`${animation} ${isVisible ? 'is-visible' : ''} ${className}`}>
+      {children}
+    </div>
+  );
+};
+
+// ============================================
+// HELPERS
+// ============================================
+const renderRichText = (text) => {
+  if (!text) return '';
+
+  // Split by link syntax [text](url), bold-italic (***), then bold (**)
+  const parts = text.split(/(\[.*?\]\(.*?\)|\*\*\*.*?\*\*\*|\*\*.*?\*\*)/g);
+
+  return parts.map((part, i) => {
+    if (part.startsWith('***') && part.endsWith('***')) {
+      return <strong key={i} className="italic font-bold">{part.slice(3, -3)}</strong>;
+    }
+    if (part.startsWith('**') && part.endsWith('**')) {
+      return <strong key={i} className="font-bold">{part.slice(2, -2)}</strong>;
+    }
+    if (part.startsWith('[') && part.includes('](') && part.endsWith(')')) {
+      const match = part.match(/\[(.*?)\]\((.*?)\)/);
+      if (match) {
+        return (
+          <a
+            key={i}
+            href={match[2]}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="timeline-link font-bold"
+          >
+            {match[1]}
+          </a>
+        );
+      }
+    }
+    return part;
+  });
+};
+
+// ============================================
+// TRANSLATIONS / TRADUÇÕES
+// ============================================
+const translations = {
+  PT: {
+    hero: {
+      greeting: 'Olá eu sou...'
+    },
+    about: {
+      bio: 'Natural de **Belo Horizonte** (MG) e nascido em 2006, sou uma pessoa movida por curiosidade, **aprendizado contínuo** e pela vontade de entender como **tecnologia, estratégia e pessoas** podem gerar **impacto real**. Desde cedo, desenvolvi um interesse genuíno por temas que unem **inovação, performance e liderança**. Foi assim que me aproximei de três áreas que hoje fazem parte do meu foco: ***Inteligência Artificial, Growth Marketing e o mercado Cripto.***'
+    },
+    nav: {
+      about: 'Sobre',
+      work: 'Trabalho',
+      contact: 'Contato'
+    },
+    timeline: {
+      title: 'Jornada Profissional',
+      events: [
+        {
+          year: "Fev 2012 – Fev 2021",
+          title: "Formação Ensino Fundamental I e II",
+          description: "Colégio Sagrado Coração de Maria (BH). Atleta da equipe de futsal e representante esportivo."
+        },
+
+        {
+          year: "Fev 2022 – Dez 2024",
+          title: "Escola do Sebrae - Médio e Tecnico em Marketing",
+          description: "Formação técnica em empreendedorismo e marketing."
+        },
+        {
+          year: "Jun 2024",
+          title: "Missão Internacional - Barcelona",
+          description: "Participação na [missão internacional em Barcelona](https://mg.agenciasebrae.com.br/cultura-empreendedora/estudantes-da-escola-do-sebrae-participam-de-missao-internacional-em-barcelona/)."
+        },
+        {
+          year: "Jan 2024 – Jul 2024",
+          title: "Estágio em Dados",
+          description: "Dados na UINE (Unidade de Inteligência Estratégica), onde contribuí para construção do [Portal Inteligência Sebrae](https://inteligencia.sebraemg.com.br/isdel)."
+        },
+        {
+          year: "Ago 2024 – Dez 2024",
+          title: "Estágio em Growth Marketing",
+          description: "Be Honest Brasil. Gestão de tráfego pago e otimização de Landing Pages."
+        },
+        {
+          year: "Dez 2024 – Presente",
+          title: "Head de Growth Marketing",
+          description: "Focado em performance e canais de aquisição na Be Honest Brasil, onde graças ao trabalho da equipe conseguimos \"dobrar de tamanho\" em 1 ano."
+        }
+      ]
+    },
+    interests: {
+      title: 'O Que Me Move',
+      items: [
+        {
+          title: "Growth Marketing",
+          description: "Escalando negócios com processo e método científico"
+        },
+        {
+          title: "Inteligência Artificial",
+          description: "Explorando IA e seu impacto no cotidiano profissional"
+        },
+        {
+          title: "Gestão & Estratégia",
+          description: "Desenvolvendo habilidades de liderança e empreendedorismo"
+        },
+        {
+          title: "Learning in Public",
+          description: "Compartilhando conhecimento com a comunidade"
+        }
+      ]
+    },
+    philosophy: {
+      title: "Comodidade com Honestidade",
+      quote: "Levar comodidade com honestidade para o dia a dia das pessoas — essa é minha filosofia de trabalho e vida.",
+      current: "Focado em Growth Marketing, processo estruturado e inovação constante. Combinando formação sólida, experiência prática e busca por conhecimento, sigo construindo uma trajetória comprometida com transparência e resultados sustentáveis."
+    },
+    footer: "Feito com ❤️ e React."
+  },
+  EN: {
+    hero: {
+      greeting: 'Hello, I am...'
+    },
+    about: {
+      bio: "Born in **Belo Horizonte** (MG) in 2006, I'm a person driven by curiosity, **continuous learning**, and the desire to understand how **technology, strategy, and people** can create **real impact**. From an early age, I developed a genuine interest in topics that combine **innovation, performance, and leadership**. That's how I got closer to three areas that are now part of my focus: ***Artificial Intelligence, Growth Marketing, and the Crypto market.***"
+    },
+    nav: {
+      about: 'About',
+      work: 'Work',
+      contact: 'Contact'
+    },
+    timeline: {
+      title: 'Professional Journey',
+      events: [
+        {
+          year: "Feb 2012 – Feb 2021",
+          title: "Elementary & Middle School Education",
+          description: "Colégio Sagrado Coração de Maria (BH). Futsal team athlete and sports representative."
+        },
+
+        {
+          year: "Feb 2022 – Dec 2024",
+          title: "Sebrae School - High School & Marketing Technician",
+          description: "Technical training in entrepreneurship and marketing."
+        },
+        {
+          year: "Jun 2024",
+          title: "International Mission - Barcelona",
+          description: "Participation in the [international mission in Barcelona](https://mg.agenciasebrae.com.br/cultura-empreendedora/estudantes-da-escola-do-sebrae-participam-de-missao-internacional-em-barcelona/)."
+        },
+        {
+          year: "Jan 2024 – Jul 2024",
+          title: "Data Internship",
+          description: "Data at UINE (Strategic Intelligence Unit), where I contributed to the development of the [Sebrae Intelligence Portal](https://inteligencia.sebraemg.com.br/isdel)."
+        },
+        {
+          year: "Aug 2024 – Dec 2024",
+          title: "Growth Marketing Internship",
+          description: "Be Honest Brasil. Paid traffic management and Landing Page optimization."
+        },
+        {
+          year: "Dec 2024 – Present",
+          title: "Head of Growth Marketing",
+          description: "Focused on performance and acquisition channels at Be Honest Brasil, where thanks to the team's work we managed to \"double in size\" in 1 year."
+        }
+      ]
+    },
+    interests: {
+      title: 'What Drives Me',
+      items: [
+        {
+          title: "Growth Marketing",
+          description: "Scaling businesses with process and scientific method"
+        },
+        {
+          title: "Artificial Intelligence",
+          description: "Exploring AI and its impact on professional daily life"
+        },
+        {
+          title: "Management & Strategy",
+          description: "Developing leadership and entrepreneurship skills"
+        },
+        {
+          title: "Learning in Public",
+          description: "Sharing knowledge with the community"
+        }
+      ]
+    },
+    philosophy: {
+      title: "Convenience with Honesty",
+      quote: "Bringing convenience with honesty to people's daily lives — this is my work and life philosophy.",
+      current: "Focused on Growth Marketing, structured process and constant innovation. Combining solid training, practical experience and pursuit of knowledge, I continue building a trajectory committed to transparency and sustainable results."
+    },
+    footer: "Made with ❤️ and React."
+  }
+};
+
+// Static data (não muda com idioma)
+const staticData = {
+  name: "João Gabriel dos Santos",
+  social: [
+    { icon: Github, label: "GitHub", url: "https://github.com/joaogabriel", color: "hover:text-white" },
+    { icon: Linkedin, label: "LinkedIn", url: "https://linkedin.com/in/joaogabriel", color: "hover:text-blue-400" },
+    { icon: Twitter, label: "Twitter", url: "https://twitter.com/joaogabriel", color: "hover:text-blue-300" },
+    { icon: Mail, label: "Email", url: "mailto:joao@example.com", color: "hover:text-red-400" },
+  ],
+  eventIcons: [Code, Lightbulb, BookOpen, Heart],
+  eventColors: ["bg-blue-500", "bg-yellow-500", "bg-purple-500", "bg-red-500"],
+  interestIcons: [Code, Lightbulb, Palette, Coffee],
+  interestColors: ["from-blue-500 to-cyan-500", "from-purple-500 to-pink-500", "from-orange-500 to-red-500", "from-amber-600 to-yellow-500"]
+};
+
+// ============================================
+// COMPONENTES
+// ============================================
+
+const App = () => {
+  const [language, setLanguage] = React.useState('PT');
+  const [scrollY, setScrollY] = React.useState(0);
+
+  useEffect(() => {
+    const handleScroll = () => setScrollY(window.scrollY);
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  const toggleLanguage = () => {
+    setLanguage(prev => prev === 'PT' ? 'EN' : 'PT');
+  };
+
+  const t = translations[language]; // Current translations
+
+  return (
+    <div className="min-h-screen bg-white">
+      {/* Responsive Header */}
+      <header className="fixed top-0 left-0 w-full z-50 px-6 py-4 md:px-8 md:py-8 flex justify-between items-center bg-white/80 backdrop-blur-sm md:bg-transparent">
+        {/* Left Spacer - can be used for a logo later */}
+        <div className="flex-1"></div>
+
+        {/* Center - Language Toggle */}
+        <div className="flex-1 flex justify-center">
+          <button
+            onClick={toggleLanguage}
+            className="text-black px-4 py-1.5 rounded-full text-xs md:text-sm font-bold tracking-wider hover:bg-gray-100 transition-colors uppercase"
+          >
+            {language}
+          </button>
+        </div>
+
+        {/* Right - Navigation Menu */}
+        <nav className="flex-1 flex justify-end gap-4 md:gap-8">
+          <a
+            href="#about"
+            className="text-black text-xs md:text-base font-medium tracking-wider hover:text-gray-600 transition-colors uppercase whitespace-nowrap"
+          >
+            {t.nav.about}
+          </a>
+          <a
+            href="#work"
+            className="text-black text-xs md:text-base font-medium tracking-wider hover:text-gray-600 transition-colors uppercase whitespace-nowrap"
+          >
+            {t.nav.work}
+          </a>
+          <a
+            href="#contact"
+            className="text-black text-xs md:text-base font-medium tracking-wider hover:text-gray-600 transition-colors uppercase whitespace-nowrap"
+          >
+            {t.nav.contact}
+          </a>
+        </nav>
+      </header>
+
+      {/* Hero Section - Seamless Design */}
+      <section className="relative min-h-[75vh] md:min-h-[80vh] flex items-center overflow-visible bg-white pt-24">
+        {/* Top-Right Decorative JG */}
+        <div className="absolute top-0 right-0 select-none pointer-events-none z-0 text-gray-200 text-[35vw] font-black leading-none tracking-tighter opacity-100 uppercase overflow-hidden">
+          JG
+        </div>
+        {/* Name container with Parallax */}
+        <div
+          className="w-full relative z-20 px-6"
+          style={{
+            transform: `translateY(${scrollY * 0.2}px)`,
+            opacity: Math.max(0, 1 - scrollY / 600)
+          }}
+        >
+          {/* Greeting */}
+          <AnimatedSection className="mb-6">
+            <span className="text-black text-2xl md:text-3xl lg:text-4xl font-normal opacity-60">
+              {t.hero.greeting}
+            </span>
+          </AnimatedSection>
+
+          {/* Full Name - Large Fluid Typography */}
+          <h1
+            className="font-medium text-black leading-[0.85] tracking-tighter w-full whitespace-normal md:whitespace-nowrap"
+            style={{
+              fontSize: 'clamp(3rem, 7.5vw, 180px)',
+              marginLeft: '-0.07em'
+            }}
+          >
+            {staticData.name}
+          </h1>
+        </div>
+
+        {/* Visual Connection Element: Large background letter scrolling slower */}
+        <div
+          className="absolute -bottom-16 right-0 select-none pointer-events-none opacity-25 -z-10 text-gray-900 hidden lg:block overflow-hidden"
+          style={{
+            fontSize: '60vw',
+            fontWeight: 800,
+            transform: `translateY(${scrollY * -0.1}px)`
+          }}
+        >
+          J
+        </div>
+      </section>
+
+      {/* About Section - Seamless Transition */}
+      <section id="about" className="relative bg-white pt-12 pb-24 md:pb-32 z-10">
+        {/* Connection Gradient */}
+        <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-b from-white to-transparent -translate-y-full pointer-events-none"></div>
+
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="flex flex-col md:flex-row items-center gap-16 md:gap-24">
+            {/* Photo with 'Anti-Gravity' Parallax */}
+            <div
+              className="w-full md:w-5/12 flex-shrink-0"
+              style={{ transform: `translateY(${Math.max(0, (scrollY - 200) * -0.15)}px)` }}
+            >
+              <AnimatedSection animation="animate-on-scroll animate-fade-left">
+                <div className="relative group">
+                  <div className="absolute -inset-4 bg-gray-100 rounded-2xl -z-10 group-hover:bg-gray-200 transition-colors duration-500"></div>
+                  <img
+                    src="/about-photo.png"
+                    alt="João Gabriel"
+                    className="w-full h-auto rounded-xl shadow-[0_32px_64px_-16px_rgba(0,0,0,0.1)] transition-all duration-700"
+                  />
+                </div>
+              </AnimatedSection>
+            </div>
+
+            {/* Bio Text */}
+            <div
+              className="w-full md:w-7/12"
+              style={{ transform: `translateY(${Math.max(0, (scrollY - 200) * -0.05)}px)` }}
+            >
+              <AnimatedSection animation="animate-on-scroll animate-fade-right">
+                <p className="text-black text-2xl md:text-3xl lg:text-5xl leading-[1.2] tracking-tight" style={{ fontFamily: "'Poppins', sans-serif" }}>
+                  {renderRichText(t.about.bio)}
+                </p>
+                {/* Skill Chips */}
+                <div className="flex flex-wrap gap-3 mt-8 md:mt-10">
+                  {['AI', 'Growth', 'Cripto'].map((skill) => (
+                    <span
+                      key={skill}
+                      className="px-4 py-1.5 rounded-full bg-black/[0.03] border border-black/[0.08] backdrop-blur-sm text-gray-600 text-[10px] md:text-xs font-semibold uppercase tracking-[0.15em] transition-all hover:bg-black/[0.06]"
+                    >
+                      {skill}
+                    </span>
+                  ))}
+                </div>
+              </AnimatedSection>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Professional Journey (Timeline) */}
+      <section id="journey" className="bg-white py-12 md:py-32 overflow-hidden">
+        <div className="max-w-6xl mx-auto px-6">
+          <AnimatedSection>
+            <h2 className="text-4xl md:text-6xl font-black text-black mb-16 md:mb-24 tracking-tighter text-center md:text-left uppercase">
+              {t.timeline.title}
+            </h2>
+          </AnimatedSection>
+
+          {/* Desktop Version (Snake Layout) */}
+          <div className="hidden md:flex flex-col gap-y-0">
+            {Array.from({ length: Math.ceil(t.timeline.events.length / 2) }).map((_, rowIndex) => {
+              const item1 = t.timeline.events[rowIndex * 2];
+              const item2 = t.timeline.events[rowIndex * 2 + 1];
+              const isForward = rowIndex % 2 === 0;
+              const isLastRow = rowIndex === Math.ceil(t.timeline.events.length / 2) - 1;
+
+              return (
+                <div
+                  key={rowIndex}
+                  className={`flex w-full relative ${isForward ? 'flex-row' : 'flex-row-reverse'} 
+                    ${isForward ? 'border-r-2 rounded-br-[4rem]' : 'border-l-2 rounded-bl-[4rem]'} 
+                    ${isLastRow ? 'border-b-0 rounded-none' : 'border-b-2'} border-black p-0`}
+                >
+                  {/* First Item in Row */}
+                  <div className={`w-1/2 p-12 lg:p-16 flex flex-col ${isForward ? 'text-right items-end' : 'text-left items-start'}`}>
+                    <AnimatedSection transitionDelay={0.1}>
+                      <span className="text-sm font-bold text-gray-400 uppercase tracking-[0.2em] mb-4 block">
+                        {item1.year}
+                      </span>
+                      <h3 className="text-2xl lg:text-3xl font-black text-black mb-4 tracking-tighter leading-tight">
+                        {item1.title}
+                      </h3>
+                      <p className="text-gray-600 text-lg leading-relaxed max-w-md font-normal">
+                        {renderRichText(item1.description)}
+                      </p>
+                    </AnimatedSection>
+                  </div>
+
+                  {/* Second Item in Row (if exists) */}
+                  {item2 && (
+                    <div className={`w-1/2 p-12 lg:p-16 flex flex-col ${isForward ? 'text-left items-start' : 'text-right items-end'}`}>
+                      <AnimatedSection transitionDelay={0.3}>
+                        <span className="text-sm font-bold text-gray-400 uppercase tracking-[0.2em] mb-4 block">
+                          {item2.year}
+                        </span>
+                        <h3 className="text-2xl lg:text-3xl font-black text-black mb-4 tracking-tighter leading-tight">
+                          {item2.title}
+                        </h3>
+                        <p className="text-gray-600 text-lg leading-relaxed max-w-md font-normal">
+                          {renderRichText(item2.description)}
+                        </p>
+                      </AnimatedSection>
+                    </div>
+                  )}
+
+                  {/* Filler for odd numbered items */}
+                  {!item2 && <div className="w-1/2"></div>}
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Mobile Version (Simple Stack) */}
+          <div className="md:hidden flex flex-col border-l-2 border-black ml-2">
+            {t.timeline.events.map((event, index) => (
+              <div key={index} className="relative pl-8 pb-12 last:pb-0">
+                {/* Mobile Dot */}
+                <div className="absolute -left-[9px] top-1.5 w-4 h-4 rounded-full bg-black border-4 border-white shadow-sm"></div>
+
+                <AnimatedSection>
+                  <span className="text-sm font-bold text-gray-400 uppercase tracking-[0.2em] mb-2 block">
+                    {event.year}
+                  </span>
+                  <h3 className="text-xl font-black text-black mb-2 tracking-tighter">
+                    {event.title}
+                  </h3>
+                  <p className="text-gray-600 text-base leading-relaxed font-normal">
+                    {renderRichText(event.description)}
+                  </p>
+                </AnimatedSection>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Interests */}
+      <section id="work" className="max-w-6xl mx-auto px-6 py-12 md:py-16 bg-black">
+        <AnimatedSection>
+          <h2 className="text-center mb-16 text-white">{t.interests.title}</h2>
+        </AnimatedSection>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {t.interests.items.map((interest, index) => {
+            const Icon = staticData.interestIcons[index];
+            return (
+              <AnimatedSection key={index} className={`stagger-${index + 1}`}>
+                <div className="group bg-white/5 backdrop-blur-sm p-8 rounded-2xl shadow-lg hover:shadow-2xl transition-all hover:-translate-y-2 border border-white/10 h-full">
+                  <div className={`w-14 h-14 rounded-xl bg-gradient-to-br ${staticData.interestColors[index]} flex items-center justify-center mb-6 group-hover:scale-110 transition-transform`}>
+                    <Icon className="text-white" size={28} />
+                  </div>
+                  <h3 className="text-xl font-semibold text-white mb-3">{interest.title}</h3>
+                  <p className="text-gray-400">{interest.description}</p>
+                </div>
+              </AnimatedSection>
+            );
+          })}
+        </div>
+      </section>
+
+      {/* Philosophy */}
+      <section id="contact" className="bg-gradient-to-br from-blue-600 to-purple-700 text-white py-12 md:py-16">
+        <div className="max-w-4xl mx-auto px-6 text-center">
+          <AnimatedSection>
+            <Lightbulb className="mx-auto mb-8" size={64} />
+            <h2 className="mb-8">{t.philosophy.title}</h2>
+            <blockquote className="text-xl md:text-2xl italic mb-8 text-blue-100">
+              "{t.philosophy.quote}"
+            </blockquote>
+            <p className="text-lg text-blue-100 leading-relaxed max-w-2xl mx-auto">
+              {t.philosophy.current}
+            </p>
+          </AnimatedSection>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="bg-black text-gray-400 py-12 border-t border-white/10">
+        <div className="max-w-6xl mx-auto px-6 text-center">
+          <p className="mb-4">© 2024 {staticData.name}. {t.footer}</p>
+          <div className="flex justify-center gap-6">
+            {staticData.social.map((social, index) => {
+              const Icon = social.icon;
+              return (
+                <a
+                  key={index}
+                  href={social.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:text-white transition-colors"
+                  aria-label={social.label}
+                >
+                  <Icon size={20} />
+                </a>
+              );
+            })}
+          </div>
+        </div>
+      </footer>
+    </div>
+  );
+};
+
+export default App;
