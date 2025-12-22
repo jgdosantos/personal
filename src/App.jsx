@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Github, Linkedin, Twitter, Mail, BookOpen, Code, Palette, Coffee, Heart, Lightbulb, ArrowUpRight } from 'lucide-react';
+import { Github, Linkedin, Twitter, Mail, BookOpen, Code, Palette, Coffee, Heart, Lightbulb } from 'lucide-react';
 
 // Custom hook for scroll animations
 const useInView = (options = {}) => {
@@ -129,10 +129,9 @@ const translations = {
     toolkit: {
       title: "Toolkit & Stack",
       items: [
-        { title: "Framer", subtitle: "Design & No-code" },
-        { title: "React / Next.js", subtitle: "Development" },
-        { title: "Tailwind CSS", subtitle: "Styling" },
-        { title: "Growth Tools", subtitle: "Analytics & CRM" }
+        { title: "Growth Marketing", subtitle: "Estratégia e Performance" },
+        { title: "AI & Automation", subtitle: "Inteligência e Processos" },
+        { title: "Funil de Vendas", subtitle: "Processos e Conversão" }
       ]
     },
     contact: {
@@ -193,10 +192,9 @@ const translations = {
     toolkit: {
       title: "Toolkit & Stack",
       items: [
-        { title: "Framer", subtitle: "Design & No-code" },
-        { title: "React / Next.js", subtitle: "Development" },
-        { title: "Tailwind CSS", subtitle: "Styling" },
-        { title: "Growth Tools", subtitle: "Analytics & CRM" }
+        { title: "Growth Marketing", subtitle: "Strategy & Performance" },
+        { title: "AI & Automation", subtitle: "Intelligence & Processes" },
+        { title: "Sales Funnel", subtitle: "Processes & Conversion" }
       ]
     },
     contact: {
@@ -466,23 +464,20 @@ const App = () => {
       </section>
 
       {/* Toolkit & Stack Section - Mobile Only */}
-      <section className="bg-black py-16 px-6 block md:hidden">
+      <section className="bg-black py-20 px-6 md:hidden">
         <AnimatedSection>
-          <h2 className="text-white text-2xl font-bold mb-8">
+          <h2 className="text-white text-3xl font-black mb-12 uppercase tracking-tighter">
             {t.toolkit.title}
           </h2>
-          <div className="flex flex-col">
+          <div className="flex flex-col gap-10">
             {t.toolkit.items.map((item, index) => (
-              <div key={index} className="flex justify-between items-center py-5 border-b border-gray-800 last:border-0">
-                <div className="flex flex-col">
-                  <h3 className="text-white text-lg font-medium leading-tight">
-                    {item.title}
-                  </h3>
-                  <p className="text-gray-500 text-sm mt-1">
-                    {item.subtitle}
-                  </p>
-                </div>
-                <ArrowUpRight className="text-gray-500 w-5 h-5" />
+              <div key={index} className="border-b border-white/10 pb-6 last:border-0">
+                <h3 className="text-white text-2xl font-bold mb-1 tracking-tight">
+                  {item.title}
+                </h3>
+                <p className="text-gray-400 text-sm uppercase tracking-widest font-medium">
+                  {item.subtitle}
+                </p>
               </div>
             ))}
           </div>
