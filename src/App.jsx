@@ -127,10 +127,10 @@ const translations = {
       ]
     },
     toolkit: {
-      title: "Toolkit & Stack",
+      title: "Ferramentas & Stack",
       items: [
         { title: "Growth Marketing", subtitle: "Estratégia e Performance" },
-        { title: "AI & Automation", subtitle: "Inteligência e Processos" },
+        { title: "IA & Automação", subtitle: "Inteligência e Processos" },
         { title: "Funil de Vendas", subtitle: "Processos e Conversão" }
       ]
     },
