@@ -354,6 +354,19 @@ const App = () => {
                     </span>
                   ))}
                 </div>
+
+                {/* Wavy Line Decoration */}
+                <div className="mt-10 md:mt-12 w-full max-w-[180px] md:max-w-[280px] opacity-80">
+                  <svg viewBox="0 0 300 30" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-auto">
+                    <path
+                      d="M2 15C50 -5 120 -5 180 15C220 28 260 28 298 15"
+                      stroke="black"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </div>
               </AnimatedSection>
             </div>
           </div>
