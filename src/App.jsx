@@ -126,10 +126,10 @@ const translations = {
         }
       ]
     },
-    philosophy: {
-      title: "Comodidade com Honestidade",
-      quote: "Levar comodidade com honestidade para o dia a dia das pessoas — essa é minha filosofia de trabalho e vida.",
-      current: "Focado em Growth Marketing, processo estruturado e inovação constante. Combinando formação sólida, experiência prática e busca por conhecimento, sigo construindo uma trajetória comprometida com transparência e resultados sustentáveis."
+    contact: {
+      title: "Vamos construir algo juntos?",
+      email: "joaogabrielsantosanjos@gmail.com",
+      social: "LinkedIn / Perfil Profissional"
     },
     footer: "Feito com ❤️ e React."
   },
@@ -181,10 +181,10 @@ const translations = {
         }
       ]
     },
-    philosophy: {
-      title: "Convenience with Honesty",
-      quote: "Bringing convenience with honesty to people's daily lives — this is my work and life philosophy.",
-      current: "Focused on Growth Marketing, structured process and constant innovation. Combining solid training, practical experience and pursuit of knowledge, I continue building a trajectory committed to transparency and sustainable results."
+    contact: {
+      title: "Let's build something together?",
+      email: "joaogabrielsantosanjos@gmail.com",
+      social: "LinkedIn / Professional Profile"
     },
     footer: "Made with ❤️ and React."
   }
@@ -446,18 +446,29 @@ const App = () => {
         </div>
       </section>
 
-      {/* Philosophy */}
-      <section id="contact" className="bg-gradient-to-br from-blue-600 to-purple-700 text-white py-12 md:py-16">
-        <div className="max-w-4xl mx-auto px-6 text-center">
+      {/* Contact Section */}
+      <section id="contact" className="bg-white py-32 border-t border-gray-100">
+        <div className="max-w-7xl mx-auto px-6 text-center">
           <AnimatedSection>
-            <Lightbulb className="mx-auto mb-8" size={64} />
-            <h2 className="mb-8">{t.philosophy.title}</h2>
-            <blockquote className="text-xl md:text-2xl italic mb-8 text-blue-100">
-              "{t.philosophy.quote}"
-            </blockquote>
-            <p className="text-lg text-blue-100 leading-relaxed max-w-2xl mx-auto">
-              {t.philosophy.current}
-            </p>
+            <h2 className="text-3xl md:text-4xl font-bold text-black mb-10 tracking-tight">
+              {t.contact.title}
+            </h2>
+            <a
+              href={`mailto:${t.contact.email}`}
+              className="block text-4xl md:text-6xl lg:text-7xl font-black text-black hover:text-gray-600 transition-colors duration-300 break-words tracking-tighter"
+            >
+              {t.contact.email}
+            </a>
+            <div className="mt-12">
+              <a
+                href="https://www.linkedin.com/in/jo%C3%A3o-gabrieldsda/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-block px-8 py-3 border border-black rounded-full text-black hover:bg-black hover:text-white transition-all duration-300 font-bold uppercase tracking-widest text-xs"
+              >
+                {t.contact.social}
+              </a>
+            </div>
           </AnimatedSection>
         </div>
       </section>
