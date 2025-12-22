@@ -131,7 +131,7 @@ const translations = {
       email: "joaogabrielsantosanjos@gmail.com",
       social: "LinkedIn / Perfil Profissional"
     },
-    footer: "Feito com ❤️ e React."
+    footer: "João Gabriel dos Santos. Made with curiosity and AI."
   },
   EN: {
     hero: {
@@ -186,7 +186,7 @@ const translations = {
       email: "joaogabrielsantosanjos@gmail.com",
       social: "LinkedIn / Professional Profile"
     },
-    footer: "Made with ❤️ and React."
+    footer: "João Gabriel dos Santos. Made with curiosity and AI."
   }
 };
 
@@ -474,26 +474,11 @@ const App = () => {
       </section>
 
       {/* Footer */}
-      <footer className="bg-black text-gray-400 py-12 border-t border-white/10">
+      <footer className="bg-black py-12 border-t border-white/10">
         <div className="max-w-6xl mx-auto px-6 text-center">
-          <p className="mb-4">© 2024 {staticData.name}. {t.footer}</p>
-          <div className="flex justify-center gap-6">
-            {staticData.social.map((social, index) => {
-              const Icon = social.icon;
-              return (
-                <a
-                  key={index}
-                  href={social.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="hover:text-white transition-colors"
-                  aria-label={social.label}
-                >
-                  <Icon size={20} />
-                </a>
-              );
-            })}
-          </div>
+          <p className="text-gray-500 text-sm md:text-base tracking-tight transition-colors">
+            {t.footer}
+          </p>
         </div>
       </footer>
     </div>
