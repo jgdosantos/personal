@@ -139,7 +139,7 @@ const translations = {
       email: "joaogabrielsantosanjos@gmail.com",
       social: "LinkedIn / Perfil Profissional"
     },
-    favoriteMusic: "Minha música favorita:",
+
     footer: "João Gabriel dos Santos. Made with curiosity and AI."
   },
   EN: {
@@ -203,7 +203,7 @@ const translations = {
       email: "joaogabrielsantosanjos@gmail.com",
       social: "LinkedIn / Professional Profile"
     },
-    favoriteMusic: "My favorite music:",
+
     footer: "João Gabriel dos Santos. Made with curiosity and AI."
   }
 };
@@ -517,23 +517,7 @@ const App = () => {
       <footer className="bg-black py-12 border-t border-white/10">
         <div className="max-w-6xl mx-auto px-6 text-center">
           {/* Favorite Music */}
-          <div className="flex flex-col items-center justify-center mb-6 space-y-2">
-            <span className="text-xs font-light text-gray-500 uppercase tracking-wider">
-              {t.favoriteMusic}
-            </span>
-            <a
-              href="https://open.spotify.com/intl-pt/track/4e9eGQYsOiBcftrWXwsVco?si=8e3d04712ea1432b"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <img
-                src={`${import.meta.env.BASE_URL}favorite-music.png`}
-                alt="System of a Down - Toxicity"
-                className="w-12 h-12 rounded-md shadow-sm object-cover bg-gray-800 transition-opacity duration-300 hover:opacity-80"
-                loading="lazy"
-              />
-            </a>
-          </div>
+
           <p className="text-gray-500 text-sm md:text-base tracking-tight transition-colors">
             {t.footer}
           </p>
