@@ -252,9 +252,12 @@ const App = () => {
         <div className="flex-1 flex justify-center">
           <button
             onClick={toggleLanguage}
-            className="text-black px-4 py-1.5 rounded-full text-xs md:text-sm font-bold tracking-wider hover:bg-gray-100 transition-colors uppercase"
+            className="text-black px-4 py-1.5 rounded-full text-xs md:text-sm font-bold tracking-wider hover:bg-gray-100 transition-colors uppercase flex items-center gap-1"
+            aria-label="Change Language"
           >
-            {language}
+            <span className={language === 'PT' ? 'opacity-100' : 'opacity-40'}>PT</span>
+            <span className="opacity-30">|</span>
+            <span className={language === 'EN' ? 'opacity-100' : 'opacity-40'}>EN</span>
           </button>
         </div>
 
