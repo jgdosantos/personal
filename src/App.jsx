@@ -344,7 +344,7 @@ const App = () => {
                 <div className="relative group">
                   <div className="absolute -inset-4 bg-gray-100 rounded-2xl -z-10 group-hover:bg-gray-200 transition-colors duration-500"></div>
                   <img
-                    src={`${import.meta.env.BASE_URL}about-photo.png`}
+                    src={`${import.meta.env.BASE_URL}about-photo-v2.jpg`}
                     alt="João Gabriel"
                     className="w-full h-auto rounded-xl shadow-[0_32px_64px_-16px_rgba(0,0,0,0.1)] transition-all duration-700"
                   />
