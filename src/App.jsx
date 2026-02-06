@@ -120,9 +120,14 @@ const translations = {
           description: "Be Honest Brasil. Gestão de tráfego pago e otimização de Landing Pages."
         },
         {
-          year: "Dez 2024 – Presente",
+          year: "2024 - Janeiro 2026",
           title: "Head de Growth Marketing",
           description: "Focado em performance e canais de aquisição na Be Honest Brasil, onde graças ao trabalho da equipe conseguimos \"dobrar de tamanho\" em 1 ano."
+        },
+        {
+          year: "Atualmente",
+          title: "Proxxy's Group - Time de Relacionamento",
+          description: "Atuação no time de relacionamento da [Proxxy's Group](https://proxxytech.com.br/)."
         }
       ]
     },
@@ -184,9 +189,14 @@ const translations = {
           description: "Be Honest Brasil. Paid traffic management and Landing Page optimization."
         },
         {
-          year: "Dec 2024 – Present",
+          year: "2024 - January 2026",
           title: "Head of Growth Marketing",
           description: "Focused on performance and acquisition channels at Be Honest Brasil, where thanks to the team's work we managed to \"double in size\" in 1 year."
+        },
+        {
+          year: "Currently",
+          title: "Proxxy's Group - Relationship Team",
+          description: "Working in the relationship team at [Proxxy's Group](https://proxxytech.com.br/)."
         }
       ]
     },
@@ -405,6 +415,9 @@ const App = () => {
                     ${isForward ? 'border-r-2 rounded-br-[4rem]' : 'border-l-2 rounded-bl-[4rem]'} 
                     ${isLastRow ? 'border-b-0 rounded-none' : 'border-b-2'} border-black p-0`}
                 >
+                  {/* Filler before item1 for reverse rows with single item */}
+                  {!item2 && !isForward && <div className="w-1/2"></div>}
+
                   {/* First Item in Row */}
                   <div className={`w-1/2 p-12 lg:p-16 flex flex-col ${isForward ? 'text-right items-end' : 'text-left items-start'}`}>
                     <AnimatedSection transitionDelay={0.1}>
@@ -437,8 +450,8 @@ const App = () => {
                     </div>
                   )}
 
-                  {/* Filler for odd numbered items */}
-                  {!item2 && <div className="w-1/2"></div>}
+                  {/* Filler for odd numbered items - placed before item1 for reverse rows, after for forward rows */}
+                  {!item2 && isForward && <div className="w-1/2"></div>}
                 </div>
               );
             })}
