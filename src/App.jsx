@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Github, Linkedin, Twitter, Mail, BookOpen, Code, Palette, Coffee, Heart, Lightbulb } from 'lucide-react';
+import TailedCursor from './TailedCursor';
 
 // Custom hook for scroll animations
 const useInView = (options = {}) => {
@@ -253,6 +254,14 @@ const App = () => {
 
   return (
     <div className="min-h-screen bg-white">
+      <TailedCursor
+        baseThickness={30}
+        colors={['#000000']}
+        speedMultiplier={0.5}
+        maxAge={500}
+        enableFade={false}
+        enableShaderEffect={false}
+      />
       {/* Responsive Header */}
       <header className="fixed top-0 left-0 w-full z-50 px-6 py-4 md:px-8 md:py-8 flex justify-between items-center bg-white/80 backdrop-blur-sm md:bg-transparent">
         {/* Left Spacer - can be used for a logo later */}
