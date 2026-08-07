@@ -1,6 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Github, Linkedin, Twitter, Mail, BookOpen, Code, Palette, Coffee, Heart, Lightbulb } from 'lucide-react';
-import TailedCursor from './TailedCursor';
 
 // Custom hook for scroll animations
 const useInView = (options = {}) => {
@@ -118,17 +117,27 @@ const translations = {
         {
           year: "Ago 2024 – Dez 2024",
           title: "Estágio em Growth Marketing",
-          description: "Be Honest Brasil. Gestão de tráfego pago e otimização de Landing Pages."
+          description: "[Be Honest Brasil](https://behonestbrasil.com.br/). Gestão de tráfego pago e otimização de Landing Pages."
         },
         {
           year: "2024 - Janeiro 2026",
           title: "Head de Growth Marketing",
-          description: "Focado em performance e canais de aquisição na Be Honest Brasil, onde graças ao trabalho da equipe conseguimos \"dobrar de tamanho\" em 1 ano."
+          description: "Focado em performance e canais de aquisição na [Be Honest Brasil](https://behonestbrasil.com.br/), onde graças ao trabalho da equipe conseguimos \"dobrar de tamanho\" em 1 ano."
         },
         {
-          year: "Atualmente",
+          year: "Fev 2026 – Mar 2026",
           title: "Proxxy's Group - Time de Relacionamento",
-          description: "Atuação no time de relacionamento da [Proxxy's Group](https://proxxytech.com.br/)."
+          description: "Atuei no time de relacionamento da [Proxxy's Group](https://proxxytech.com.br/)."
+        },
+        {
+          year: "Mar 2026 – Atualmente",
+          title: "Sniffer - PMO",
+          description: "PMO na Sniffer, em Belo Horizonte."
+        },
+        {
+          year: "Jul 2026 – Atualmente",
+          title: "BKDG - Produto & UX",
+          description: "Produto e UX na BKDG, em Belo Horizonte."
         }
       ]
     },
@@ -187,17 +196,27 @@ const translations = {
         {
           year: "Aug 2024 – Dec 2024",
           title: "Growth Marketing Internship",
-          description: "Be Honest Brasil. Paid traffic management and Landing Page optimization."
+          description: "[Be Honest Brasil](https://behonestbrasil.com.br/). Paid traffic management and Landing Page optimization."
         },
         {
           year: "2024 - January 2026",
           title: "Head of Growth Marketing",
-          description: "Focused on performance and acquisition channels at Be Honest Brasil, where thanks to the team's work we managed to \"double in size\" in 1 year."
+          description: "Focused on performance and acquisition channels at [Be Honest Brasil](https://behonestbrasil.com.br/), where thanks to the team's work we managed to \"double in size\" in 1 year."
         },
         {
-          year: "Currently",
+          year: "Feb 2026 – Mar 2026",
           title: "Proxxy's Group - Relationship Team",
-          description: "Working in the relationship team at [Proxxy's Group](https://proxxytech.com.br/)."
+          description: "Worked in the relationship team at [Proxxy's Group](https://proxxytech.com.br/)."
+        },
+        {
+          year: "Mar 2026 – Currently",
+          title: "Sniffer - PMO",
+          description: "PMO at Sniffer, in Belo Horizonte."
+        },
+        {
+          year: "Jul 2026 – Currently",
+          title: "BKDG - Product & UX",
+          description: "Product and UX at BKDG, in Belo Horizonte."
         }
       ]
     },
@@ -254,14 +273,6 @@ const App = () => {
 
   return (
     <div className="min-h-screen bg-white">
-      <TailedCursor
-        baseThickness={30}
-        colors={['#000000']}
-        speedMultiplier={0.5}
-        maxAge={500}
-        enableFade={false}
-        enableShaderEffect={false}
-      />
       {/* Responsive Header */}
       <header className="fixed top-0 left-0 w-full z-50 px-6 py-4 md:px-8 md:py-8 flex justify-between items-center bg-white/80 backdrop-blur-sm md:bg-transparent">
         {/* Left Spacer - can be used for a logo later */}
@@ -304,7 +315,7 @@ const App = () => {
       </header>
 
       {/* Hero Section - Seamless Design */}
-      <section className="relative min-h-[75vh] md:min-h-[80vh] flex items-center overflow-visible bg-white pt-24">
+      <section className="relative min-h-screen flex items-center overflow-visible bg-white pt-24">
         <div className="absolute top-1/2 right-0 -translate-y-1/2 select-none pointer-events-none z-0 overflow-hidden text-right leading-none">
           <span className="block text-[30vw] font-black text-black opacity-[0.05] tracking-tighter">
             JG
@@ -351,26 +362,38 @@ const App = () => {
       </section>
 
       {/* About Section - Seamless Transition */}
-      <section id="about" className="relative bg-white pt-12 pb-24 md:pb-32 z-10">
+      <section id="about" className="relative bg-white pt-20 md:pt-28 pb-24 md:pb-32 z-10">
         {/* Connection Gradient */}
         <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-b from-white to-transparent -translate-y-full pointer-events-none"></div>
 
         <div className="max-w-7xl mx-auto px-6">
           <div className="flex flex-col md:flex-row items-center gap-16 md:gap-24">
-            {/* Photo with 'Anti-Gravity' Parallax */}
+            {/* Memoji with 'Anti-Gravity' Parallax */}
             <div
               className="w-full md:w-5/12 flex-shrink-0"
               style={{ transform: `translateY(${Math.max(0, (scrollY - 200) * -0.15)}px)` }}
             >
               <AnimatedSection animation="animate-on-scroll animate-fade-left">
-                <div className="relative group">
-                  <div className="absolute -inset-4 bg-gray-100 rounded-2xl -z-10 group-hover:bg-gray-200 transition-colors duration-500"></div>
-                  <img
-                    src={`${import.meta.env.BASE_URL}about-photo.png`}
-                    alt="João Gabriel"
-                    className="w-full h-auto rounded-xl shadow-[0_32px_64px_-16px_rgba(0,0,0,0.1)] transition-all duration-700"
+                <video
+                  autoPlay
+                  loop
+                  muted
+                  playsInline
+                  aria-label="João Gabriel"
+                  className="w-full max-w-[380px] h-auto mx-auto"
+                >
+                  {/* Order matters: Safari plays VP9 but ignores its alpha channel,
+                      so it has to match the HEVC-with-alpha .mov first. Chrome and
+                      Firefox don't claim video/quicktime and fall through to WebM. */}
+                  <source
+                    src={`${import.meta.env.BASE_URL}memoji.mov`}
+                    type='video/quicktime; codecs="hvc1"'
                   />
-                </div>
+                  <source
+                    src={`${import.meta.env.BASE_URL}memoji.webm`}
+                    type="video/webm"
+                  />
+                </video>
               </AnimatedSection>
             </div>
 
