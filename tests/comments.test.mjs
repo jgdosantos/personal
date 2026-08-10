@@ -53,6 +53,7 @@ check('âncora gravada', res.payload?.comment?.anchor_id === 'escopo-05');
 
 let mail = JSON.parse(calls.filter((c) => c.url.includes('resend')).at(-1).body);
 check('notifica o dono', mail.to[0] === 'joao@exemplo.com', JSON.stringify(mail.to));
+check('reply_to = cliente que escreveu', mail.reply_to?.[0] === 'marcelo@exemplo.com', JSON.stringify(mail.reply_to));
 
 // 2. Dono responde com o token
 res = await run({
@@ -66,6 +67,7 @@ check('resposta sem âncora', res.payload?.comment?.anchor_id === null);
 
 mail = JSON.parse(calls.filter((c) => c.url.includes('resend')).at(-1).body);
 check('notifica o cliente', mail.to[0] === 'marcelo@exemplo.com', JSON.stringify(mail.to));
+check('reply_to = dono que respondeu', mail.reply_to?.[0] === 'joao@exemplo.com', JSON.stringify(mail.reply_to));
 check('e-mail cita a thread pai', mail.html.includes('Isso cobre Instagram?'));
 
 // 3. Token errado não vira dono
@@ -106,6 +108,27 @@ check('GET sem cache', res.headers['Cache-Control'] === 'no-store');
 // 7. Método não suportado
 res = await run({ method: 'DELETE', body: {} });
 check('DELETE = 405', res.statusCode === 405);
+
+// 8. Sem CLIENT_EMAIL configurado, o comentário do cliente ainda notifica o
+// dono — só que sem reply_to, porque não há endereço do autor para apontar.
+{
+  // O módulo lê process.env no carregamento, então a variável precisa sair
+  // do ambiente ANTES do import — e a query string força uma instância nova.
+  const saved = process.env.CLIENT_EMAIL;
+  delete process.env.CLIENT_EMAIL;
+  const { default: freshHandler } = await import(
+    new URL(`../api/comments.js?no-client-email`, import.meta.url)
+  );
+  const fresh = mkRes();
+  await freshHandler({
+    method: 'POST',
+    body: { slug: 'marcelo', anchorId: 'cta', relX: 0.5, relY: 0.5, name: 'Marcelo', body: 'sem email do cliente' },
+  }, fresh);
+  const m = JSON.parse(calls.filter((c) => c.url.includes('resend')).at(-1).body);
+  check('sem CLIENT_EMAIL, ainda notifica o dono', m.to[0] === 'joao@exemplo.com', JSON.stringify(m.to));
+  check('sem CLIENT_EMAIL, reply_to omitido', m.reply_to === undefined, JSON.stringify(m.reply_to));
+  process.env.CLIENT_EMAIL = saved;
+}
 
 console.log(failures === 0 ? '\nTODOS OS TESTES PASSARAM' : `\n${failures} FALHA(S)`);
 process.exit(failures === 0 ? 0 : 1);

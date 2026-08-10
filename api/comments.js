@@ -55,6 +55,10 @@ async function insertComment(row) {
 async function notify({ comment, isReply, parentBody }) {
   // Quem escreveu não recebe o aviso — só o outro lado da conversa.
   const to = comment.author_role === 'owner' ? CLIENT_EMAIL : OWNER_EMAIL;
+  // O RESEND_FROM é um remetente sem caixa postal, então responder o e-mail
+  // cairia no vácuo. Apontamos o Reply-To para quem escreveu o comentário:
+  // quem recebe o aviso responde direto para a outra pessoa.
+  const replyTo = comment.author_role === 'owner' ? OWNER_EMAIL : CLIENT_EMAIL;
   if (!RESEND_API_KEY || !RESEND_FROM || !to) {
     console.warn('[comments] notificação ignorada: faltam RESEND_API_KEY, RESEND_FROM ou destinatário');
     return;
@@ -93,6 +97,9 @@ async function notify({ comment, isReply, parentBody }) {
     body: JSON.stringify({
       from: RESEND_FROM,
       to: [to],
+      // Omitido quando o endereço do autor não está configurado — o Resend
+      // recusa um reply_to vazio.
+      ...(replyTo ? { reply_to: [replyTo] } : {}),
       subject,
       html,
       text: `${heading}\n\n${comment.author_name}:\n${comment.body}\n\n${link}`,
