@@ -43,7 +43,7 @@ p {
 }
 
 /* ----------------------------------------------------------------------
-   Escopo tipográfico da proposta (/proposta-marcelo)
+   Escopo tipográfico das páginas de cliente (/proposta-marcelo e /brief)
 
    As regras de elemento acima moram FORA de qualquer @layer, e no Tailwind
    v4 as utilidades moram dentro de `@layer utilities`. Declaração sem layer
@@ -54,11 +54,16 @@ p {
 
    `revert-layer` devolve a decisão para a layer de baixo (utilities), ou
    seja, para as classes escritas no JSX, sem tocar no resto do site: fora
-   de .proposta-page as regras globais continuam valendo exatamente como
+   destas duas páginas as regras globais continuam valendo exatamente como
    antes. Em browser sem suporte a declaração é ignorada e o comportamento
    atual permanece.
+
+   Toda página nova que use utilidades de tipografia precisa entrar neste
+   seletor, ou herda os tamanhos globais em silêncio — que é justamente como
+   este bug passou despercebido na proposta.
    ---------------------------------------------------------------------- */
-.proposta-page :is(h1, h2, h3, h4, p) {
+.proposta-page :is(h1, h2, h3, h4, p),
+.brief-page :is(h1, h2, h3, h4, p) {
   font-size: revert-layer;
   font-weight: revert-layer;
   line-height: revert-layer;

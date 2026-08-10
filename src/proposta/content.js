@@ -5,10 +5,10 @@
 // são gravados contra esse id, então renomear um anchor "solta" os comentários
 // já existentes daquele bloco. Adicione novos ids em vez de reciclar antigos.
 
-export const WHATSAPP_NUMBER = '5531986494998';
-
-export const whatsappLink = (message) =>
-  `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
+// Reexportado de src/lib/whatsapp.js: o briefing usa o mesmo número, e um dado
+// com dois donos vira dois valores na primeira correção. Quem já importava
+// daqui continua funcionando.
+export { WHATSAPP_NUMBER, whatsappLink } from '../lib/whatsapp.js';
 
 export const PROPOSAL_SLUG = 'marcelo';
 

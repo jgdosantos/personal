@@ -8,6 +8,15 @@
                     "value": "noindex, nofollow"
                 }
             ]
+        },
+        {
+            "source": "/brief(.*)",
+            "headers": [
+                {
+                    "key": "X-Robots-Tag",
+                    "value": "noindex, nofollow"
+                }
+            ]
         }
     ],
     "rewrites": [

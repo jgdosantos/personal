@@ -2,12 +2,14 @@ import React from 'react'
 import ReactDOM from 'react-dom/client'
 import App from './App.jsx'
 import PropostaMarcelo from './proposta/PropostaMarcelo.jsx'
+import BriefForm from './brief/BriefForm.jsx'
 import './index.css'
 
 // Roteamento por path. O vercel.json reescreve tudo para o index, então o
 // pathname chega intacto aqui e basta escolher a página — sem router extra.
 const routes = {
   '/proposta-marcelo': PropostaMarcelo,
+  '/brief': BriefForm,
 }
 
 const path = window.location.pathname.replace(/\/+$/, '') || '/'
