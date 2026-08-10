@@ -12,6 +12,10 @@ export const whatsappLink = (message) =>
 
 export const PROPOSAL_SLUG = 'marcelo';
 
+// Serve de public/. O rewrite do vercel.json exclui /api/, mas arquivos
+// estáticos são resolvidos antes dele — o PDF não cai no index.html.
+export const PDF_PATH = '/proposta-desenvolvimento-web.pdf';
+
 export const meta = {
   kicker: 'Proposta comercial · Desenvolvimento Web',
   title: 'Site Institucional',

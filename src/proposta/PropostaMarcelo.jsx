@@ -4,7 +4,7 @@ import { CommentsProvider } from './comments/store.jsx';
 import { CommentsPanel } from './comments/CommentsPanel.jsx';
 import { Commentable } from './comments/Commentable.jsx';
 import {
-  PROPOSAL_SLUG, meta, scope, steps, maintenanceItems, info, whatsappLink,
+  PROPOSAL_SLUG, PDF_PATH, meta, scope, steps, maintenanceItems, info, whatsappLink,
 } from './content.js';
 
 const APPROVE_LINK = whatsappLink(
@@ -331,6 +331,20 @@ const PropostaMarcelo = () => {
                     className="inline-block rounded-full border border-white/30 px-8 py-3 text-xs font-bold uppercase tracking-widest text-white transition-all duration-300 hover:border-white hover:bg-white/5"
                   >
                     Falar no WhatsApp
+                  </a>
+                  {/* `download` sugere salvar em vez de abrir no leitor do
+                      navegador, que é o que se espera de "baixar". */}
+                  <a
+                    href={PDF_PATH}
+                    download
+                    className="inline-flex items-center gap-2 rounded-full border border-white/30 px-8 py-3 text-xs font-bold uppercase tracking-widest text-white transition-all duration-300 hover:border-white hover:bg-white/5"
+                  >
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                      <polyline points="7 10 12 15 17 10" />
+                      <line x1="12" y1="15" x2="12" y2="3" />
+                    </svg>
+                    Baixar PDF
                   </a>
                 </div>
               </AnimatedSection>

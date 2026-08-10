@@ -40,10 +40,14 @@ const RESOLVED_COLUMNS = 'resolved_at,resolved_by';
 
 // Deploy e migração não acontecem no mesmo instante. Pedir uma coluna que ainda
 // não existe faz o PostgREST devolver 400, e o painel inteiro morria em 500 até
-// alguém rodar o SQL. Agora o código detecta a ausência, degrada para o
-// conjunto antigo e volta sozinho quando a migração roda.
-let hasResolvedColumns = true;
-
+// alguém rodar o SQL. Aqui a ausência é detectada e o select degrada para o
+// conjunto antigo.
+//
+// A tentativa completa é refeita a cada requisição de propósito. A primeira
+// versão memorizava a degradação numa variável de módulo — e como o Fluid
+// Compute reaproveita a instância, ela seguia servindo o formato antigo mesmo
+// depois da migração rodar, até a instância reciclar. O custo de não memorizar
+// é uma requisição extra apenas na janela em que a coluna não existe.
 const fetchComments = (slug, select) => {
   const query = new URLSearchParams({
     proposal_slug: `eq.${slug}`,
@@ -54,16 +58,12 @@ const fetchComments = (slug, select) => {
 };
 
 async function selectComments(slug) {
-  let res = await fetchComments(
-    slug,
-    hasResolvedColumns ? `${BASE_COLUMNS},${RESOLVED_COLUMNS}` : BASE_COLUMNS,
-  );
+  let res = await fetchComments(slug, `${BASE_COLUMNS},${RESOLVED_COLUMNS}`);
 
-  if (!res.ok && hasResolvedColumns) {
+  if (!res.ok) {
     const detail = await res.text();
     if (detail.includes('resolved_at') || detail.includes('resolved_by')) {
       console.warn('[comments] colunas de resolução ausentes — rode supabase/proposal_comments_resolved.sql');
-      hasResolvedColumns = false;
       res = await fetchComments(slug, BASE_COLUMNS);
     } else {
       throw new Error(`Supabase select falhou: ${res.status} ${detail}`);
