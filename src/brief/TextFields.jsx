@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useBrief } from './context.js';
 import { fields } from './content.js';
+import { WhatsAppEscape } from './WhatsAppEscape.jsx';
 
 const DESCRIPTION_SOFT_MAX = 600;
 
@@ -122,6 +123,9 @@ export const TextFields = () => {
         {urlError && (
           <p role="alert" className="mt-1.5 text-[12.5px] font-medium text-red-600">{urlError}</p>
         )}
+        {/* Design System é campo de texto, mas entra na lista de escapatória:
+            o cliente pode não saber onde está o Figma e preferir perguntar. */}
+        <WhatsAppEscape field="design_system" label={fields.designSystem.label} />
       </Field>
 
       <Field id="notes" label={fields.notes.label} help={fields.notes.help} optional>

@@ -50,6 +50,16 @@ export const fields = {
   },
 };
 
+export const escape = {
+  // Discreto de propósito: é uma saída, não um atalho recomendado. Se competir
+  // visualmente com a zona de upload, vira o caminho padrão.
+  offer: 'Prefiro mandar pelo WhatsApp',
+  marked: (label) => `Você vai mandar ${label.toLowerCase()} pelo WhatsApp.`,
+  undo: 'Mudei de ideia, quero subir aqui',
+  // Marcar não fecha a porta: o upload continua disponível.
+  stillOpen: 'Se preferir, ainda dá para subir o arquivo aqui.',
+};
+
 export const autosave = {
   saving: 'Salvando…',
   saved: 'Salvo',
