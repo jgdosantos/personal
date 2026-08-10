@@ -64,7 +64,9 @@ export const Commentable = ({ id, children, className = '' }) => {
       onClickCapture={handleClick}
       className={[
         'relative',
-        commenting ? 'cursor-crosshair rounded-lg outline-dashed outline-1 outline-offset-4 outline-black/15 hover:outline-black/60 hover:bg-black/[0.02]' : '',
+        // Em modo comentário o contorno precisa ser óbvio: é ele que diz quais
+        // trechos aceitam clique. Sutil demais e o usuário clica no vazio.
+        commenting ? 'cursor-crosshair rounded-lg outline-dashed outline-2 outline-offset-4 outline-black/40 hover:outline-black hover:bg-black/[0.04]' : '',
         className,
       ].join(' ')}
     >

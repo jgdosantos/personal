@@ -134,26 +134,28 @@ const PropostaMarcelo = () => {
         {/* ============ ESCOPO ============ */}
         <section id="escopo" className="bg-white py-20 md:py-32">
           <div className="mx-auto max-w-6xl px-6">
-            <AnimatedSection>
-              <div className="flex flex-col gap-8 border-b-2 border-black pb-10 md:flex-row md:items-end md:justify-between">
-                <div>
-                  <Kicker className="mb-5">O que está incluso</Kicker>
-                  <SectionTitle>
-                    Escopo completo,<br className="hidden md:block" /> sem letras miúdas.
-                  </SectionTitle>
-                  <p className="mt-6 max-w-xl text-lg leading-relaxed text-gray-600">
-                    Cada item abaixo entra no valor apresentado. Funcionalidades fora desta lista
-                    são orçadas separadamente e sempre aprovadas antes.
-                  </p>
+            <Commentable id="escopo-intro">
+              <AnimatedSection>
+                <div className="flex flex-col gap-8 border-b-2 border-black pb-10 md:flex-row md:items-end md:justify-between">
+                  <div>
+                    <Kicker className="mb-5">O que está incluso</Kicker>
+                    <SectionTitle>
+                      Escopo completo,<br className="hidden md:block" /> sem letras miúdas.
+                    </SectionTitle>
+                    <p className="mt-6 max-w-xl text-lg leading-relaxed text-gray-600">
+                      Cada item abaixo entra no valor apresentado. Funcionalidades fora desta lista
+                      são orçadas separadamente e sempre aprovadas antes.
+                    </p>
+                  </div>
+                  <div className="flex-shrink-0 md:text-right">
+                    <Kicker className="mb-2">A partir de</Kicker>
+                    <p className="text-5xl font-black tracking-tighter text-black md:text-6xl">
+                      R$&nbsp;2.000
+                    </p>
+                  </div>
                 </div>
-                <div className="flex-shrink-0 md:text-right">
-                  <Kicker className="mb-2">A partir de</Kicker>
-                  <p className="text-5xl font-black tracking-tighter text-black md:text-6xl">
-                    R$&nbsp;2.000
-                  </p>
-                </div>
-              </div>
-            </AnimatedSection>
+              </AnimatedSection>
+            </Commentable>
 
             <div className="mt-14 grid grid-cols-1 gap-x-16 gap-y-10 md:grid-cols-2">
               {scope.map((item) => (
@@ -185,14 +187,16 @@ const PropostaMarcelo = () => {
         {/* ============ PROCESSO ============ */}
         <section id="processo" className="bg-white py-20 md:py-32">
           <div className="mx-auto max-w-6xl px-6">
-            <AnimatedSection>
-              <Kicker className="mb-5">O processo</Kicker>
-              <SectionTitle>Como o projeto acontece.</SectionTitle>
-              <p className="mt-6 max-w-2xl text-lg leading-relaxed text-gray-600">
-                Do primeiro alinhamento à entrega final, um processo transparente — com valores
-                claros, prazos definidos e nenhuma surpresa no meio do caminho.
-              </p>
-            </AnimatedSection>
+            <Commentable id="processo-intro">
+              <AnimatedSection>
+                <Kicker className="mb-5">O processo</Kicker>
+                <SectionTitle>Como o projeto acontece.</SectionTitle>
+                <p className="mt-6 max-w-2xl text-lg leading-relaxed text-gray-600">
+                  Do primeiro alinhamento à entrega final, um processo transparente — com valores
+                  claros, prazos definidos e nenhuma surpresa no meio do caminho.
+                </p>
+              </AnimatedSection>
+            </Commentable>
 
             <div className="mt-14 grid grid-cols-1 border-t-2 border-black sm:grid-cols-2 lg:grid-cols-4">
               {steps.map((step, index) => (
@@ -271,12 +275,14 @@ const PropostaMarcelo = () => {
         {/* ============ INFORMAÇÕES ============ */}
         <section id="info" className="bg-white py-20 md:py-32">
           <div className="mx-auto max-w-6xl px-6">
-            <AnimatedSection>
-              <Kicker className="mb-5">Informações importantes</Kicker>
-              <SectionTitle>
-                Sem letras miúdas, <span className="text-gray-400">nunca.</span>
-              </SectionTitle>
-            </AnimatedSection>
+            <Commentable id="info-intro">
+              <AnimatedSection>
+                <Kicker className="mb-5">Informações importantes</Kicker>
+                <SectionTitle>
+                  Sem letras miúdas, <span className="text-gray-400">nunca.</span>
+                </SectionTitle>
+              </AnimatedSection>
+            </Commentable>
 
             <div className="mt-14 grid grid-cols-1 border-t-2 border-black md:grid-cols-2">
               {info.map((cell, index) => (

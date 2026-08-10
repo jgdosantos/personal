@@ -114,9 +114,12 @@ export const CommentsProvider = ({ slug, children }) => {
     }
   }, [slug, authorName, ownerToken]);
 
-  const createThread = useCallback(async (body) => {
+  // `name` chega explícito do Composer: setAuthorName é assíncrono, então no
+  // primeiro comentário o `authorName` do closure ainda está vazio e a API
+  // gravaria "Visitante" no lugar de quem escreveu.
+  const createThread = useCallback(async (body, name) => {
     if (!draft) return null;
-    const created = await post({ ...draft, body });
+    const created = await post({ ...draft, body, ...(name ? { name } : {}) });
     setDraft(null);
     setMode('browse');
     setActiveThreadId(created.id);
@@ -124,7 +127,10 @@ export const CommentsProvider = ({ slug, children }) => {
     return created;
   }, [draft, post]);
 
-  const reply = useCallback((parentId, body) => post({ parentId, body }), [post]);
+  const reply = useCallback(
+    (parentId, body, name) => post({ parentId, body, ...(name ? { name } : {}) }),
+    [post],
+  );
 
   // Threads são numeradas por ordem de criação — o número do pin é o mesmo
   // que aparece no painel lateral e no e-mail de notificação.

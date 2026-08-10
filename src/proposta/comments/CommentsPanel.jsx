@@ -42,9 +42,10 @@ const Composer = ({ placeholder, submitLabel, onSubmit, autoFocus = false }) => 
       setError('Escreve o comentário antes de enviar.');
       return;
     }
+    const finalName = needsName ? name.trim() : authorName;
     if (needsName) setAuthorName(name);
     try {
-      await onSubmit(body.trim());
+      await onSubmit(body.trim(), finalName);
       setBody('');
     } catch (err) {
       setError(err.message || 'Não consegui enviar. Tenta de novo.');
@@ -82,6 +83,17 @@ const Composer = ({ placeholder, submitLabel, onSubmit, autoFocus = false }) => 
     </form>
   );
 };
+
+const StartButton = ({ onClick, className = '' }) => (
+  <button
+    type="button"
+    onClick={onClick}
+    className={`inline-flex items-center gap-2 rounded-full border border-black bg-black px-5 py-2.5 text-[10px] font-bold uppercase tracking-widest text-white transition-all duration-300 hover:bg-white hover:text-black ${className}`}
+  >
+    <MessageSquarePlus size={14} />
+    Comentar num trecho
+  </button>
+);
 
 const Thread = ({ thread }) => {
   const { activeThreadId, setActiveThreadId, reply } = useComments();
@@ -135,7 +147,7 @@ const Thread = ({ thread }) => {
             autoFocus
             placeholder="Responder…"
             submitLabel="Responder"
-            onSubmit={(body) => reply(thread.id, body)}
+            onSubmit={(body, name) => reply(thread.id, body, name)}
           />
         </div>
       )}
@@ -150,6 +162,15 @@ export const CommentsPanel = () => {
   } = useComments();
 
   const total = threads.reduce((sum, t) => sum + 1 + t.replies.length, 0);
+
+  // Fecha o painel e entra em modo comentário. Sem isso o painel aberto vira um
+  // beco sem saída: ele manda "toque em Comentar", mas a barra flutuante que
+  // tem esse botão só existe enquanto o painel está fechado.
+  const startCommenting = () => {
+    setDraft(null);
+    setMode('comment');
+    setPanelOpen(false);
+  };
 
   return (
     <>
@@ -188,8 +209,8 @@ export const CommentsPanel = () => {
       {/* Faixa de instrução no modo comentário */}
       {mode === 'comment' && !draft && !panelOpen && (
         <div className="fixed bottom-20 left-1/2 z-[70] -translate-x-1/2 rounded-full bg-black px-5 py-2.5 text-center shadow-[0_4px_20px_rgba(0,0,0,0.25)] print:hidden">
-          <p className="whitespace-nowrap text-[10px] font-bold uppercase tracking-[0.2em] text-white">
-            Clique num trecho para comentar ali
+          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-white">
+            Clique num trecho <span className="text-gray-400">destacado</span> para comentar ali
           </p>
         </div>
       )}
@@ -248,9 +269,10 @@ export const CommentsPanel = () => {
           {status === 'ready' && threads.length === 0 && !draft && (
             <div className="px-6 py-10">
               <p className="text-sm leading-relaxed text-gray-500">
-                Nenhum comentário ainda. Toque em <strong className="text-black">Comentar</strong> e
-                clique em qualquer trecho da proposta para deixar uma observação ancorada ali.
+                Nenhum comentário ainda. Toque no botão abaixo e depois clique no trecho da
+                proposta sobre o qual você quer falar — o comentário fica ancorado ali.
               </p>
+              <StartButton onClick={startCommenting} className="mt-6" />
             </div>
           )}
 
@@ -259,6 +281,12 @@ export const CommentsPanel = () => {
               <Thread key={thread.id} thread={thread} />
             ))}
           </ul>
+
+          {status === 'ready' && threads.length > 0 && !draft && (
+            <div className="px-6 py-8">
+              <StartButton onClick={startCommenting} />
+            </div>
+          )}
         </div>
       </aside>
     </>
