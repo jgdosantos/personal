@@ -1,42 +1,6 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect } from 'react';
 import { Github, Linkedin, Twitter, Mail, BookOpen, Code, Palette, Coffee, Heart, Lightbulb } from 'lucide-react';
-
-// Custom hook for scroll animations
-const useInView = (options = {}) => {
-  const ref = useRef(null);
-  const [isVisible, setIsVisible] = useState(false);
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(([entry]) => {
-      if (entry.isIntersecting) {
-        setIsVisible(true);
-        observer.unobserve(entry.target);
-      }
-    }, { threshold: 0.1, ...options });
-
-    if (ref.current) {
-      observer.observe(ref.current);
-    }
-
-    return () => {
-      if (ref.current) {
-        observer.unobserve(ref.current);
-      }
-    };
-  }, []);
-
-  return [ref, isVisible];
-};
-
-// Animated component wrapper
-const AnimatedSection = ({ children, className = '', animation = 'animate-on-scroll' }) => {
-  const [ref, isVisible] = useInView();
-  return (
-    <div ref={ref} className={`${animation} ${isVisible ? 'is-visible' : ''} ${className}`}>
-      {children}
-    </div>
-  );
-};
+import { AnimatedSection } from './lib/animation.jsx';
 
 // ============================================
 // HELPERS
