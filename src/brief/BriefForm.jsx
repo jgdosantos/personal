@@ -4,6 +4,7 @@ import { page, states, autosave, invalidLinkMessage } from './content.js';
 import { BriefProvider } from './store.jsx';
 import { useBrief } from './context.js';
 import { TextFields, focusRing } from './TextFields.jsx';
+import { Submit } from './Submit.jsx';
 
 const Shell = ({ children }) => (
   <div className="brief-page min-h-screen bg-white">
@@ -95,9 +96,8 @@ const BriefBody = () => {
       <p className="text-[15px] leading-[1.65] text-neutral-600">{page.intro}</p>
       <div className="mt-3"><SaveIndicator /></div>
       <div className="mt-10"><TextFields /></div>
-      <p className="mt-12 border-t border-black/[0.06] pt-6 text-[13px] text-neutral-400">
-        {page.autosave}
-      </p>
+      <Submit />
+      <p className="mt-10 text-[13px] text-neutral-400">{page.autosave}</p>
     </>
   );
 };

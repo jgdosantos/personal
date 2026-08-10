@@ -13,8 +13,8 @@
 // e um brandbook passa disso sozinho.
 
 import {
-  FIELDS, WHATSAPP_FIELDS, BRIEF_MAX_BYTES,
-  isAllowed, canonicalContentType, safeStorageName,
+  FIELDS, UPLOAD_FIELDS, WHATSAPP_FIELDS, BRIEF_MAX_BYTES,
+  isAllowed, canonicalContentType, safeStorageName, fieldState,
 } from '../shared/briefFields.js';
 
 // Colar valor no painel da Vercel arrasta espaço e quebra de linha invisíveis
@@ -26,6 +26,20 @@ const SUPABASE_URL = env('SUPABASE_URL').replace(/\/+$/, '');
 const SERVICE_KEY = env('SUPABASE_SERVICE_ROLE_KEY');
 const OWNER_TOKEN = env('OWNER_TOKEN');
 const BUCKET = env('BRIEF_BUCKET') || 'brand-briefs';
+const RESEND_API_KEY = env('RESEND_API_KEY');
+const RESEND_FROM = env('RESEND_FROM');
+const OWNER_EMAIL = env('OWNER_EMAIL');
+const SITE_URL = env('SITE_URL').replace(/\/+$/, '');
+
+const escapeHtml = (value) => String(value).replace(/[&<>"']/g, (ch) => (
+  { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]
+));
+
+const STATE_LABEL = {
+  recebido: 'recebido',
+  enviado_whatsapp: 'enviado por WhatsApp',
+  nao_enviado: 'não enviado',
+};
 
 const BRIEFS = 'brand_briefs';
 const FILES = 'brief_files';
@@ -167,6 +181,94 @@ const deleteObject = (path) => fetch(
   `${SUPABASE_URL}/storage/v1/object/${BUCKET}/${path}`,
   { method: 'DELETE', headers: restHeaders },
 );
+
+// ---------------------------------------------------------------------------
+// Notificação
+// ---------------------------------------------------------------------------
+
+/** Uma linha por campo de material, com o estado calculado pelo helper único. */
+const materialLines = (brief, files) => {
+  const rows = UPLOAD_FIELDS.map((field) => {
+    const state = fieldState(field, files, brief.whatsapp_fields);
+    const count = files.filter((f) => f.field === field && f.status === 'ready').length;
+    const value = state === 'recebido'
+      ? `${count} arquivo${count === 1 ? '' : 's'}`
+      : STATE_LABEL[state];
+    return { label: FIELDS[field].label, value };
+  });
+  const ds = fieldState('design_system', [], brief.whatsapp_fields);
+  rows.push({
+    label: 'Design System',
+    value: brief.design_system_url
+      ? brief.design_system_url
+      : STATE_LABEL[ds === 'enviado_whatsapp' ? 'enviado_whatsapp' : 'nao_enviado'],
+  });
+  return rows;
+};
+
+async function notify(brief, files, { isUpdate }) {
+  // Nunca mandamos para o cliente: quem precisa saber que chegou briefing é o
+  // João. reply_to omitido quando não há e-mail — o Resend recusa vazio.
+  const replyTo = brief.client_email;
+  if (!RESEND_API_KEY || !RESEND_FROM || !OWNER_EMAIL) {
+    console.warn('[brief] notificação ignorada: faltam RESEND_API_KEY, RESEND_FROM ou OWNER_EMAIL');
+    return;
+  }
+
+  const heading = isUpdate ? 'Briefing de marca atualizado' : 'Briefing de marca';
+  const brandName = brief.brand_name || brief.client_label || 'sem nome';
+  const subject = `${heading} — ${brandName}`;
+  // Sem OWNER_TOKEN e sem URL assinada: e-mail é encaminhável, e URL assinada
+  // é bearer token. O navegador do João já tem o token no localStorage.
+  const adminLink = SITE_URL ? `${SITE_URL}/brief-admin?id=${brief.id}` : '';
+
+  const rows = materialLines(brief, files)
+    .map((r) => `<tr><td style="padding:4px 16px 4px 0;color:#6e6e73">${escapeHtml(r.label)}</td>`
+      + `<td style="padding:4px 0">${escapeHtml(r.value)}</td></tr>`)
+    .join('');
+
+  // Documento completo com lang="pt-BR": sem isso o Gmail oferece traduzir do
+  // inglês. Visual sóbrio de propósito — botão em pílula com caixa alta foi o
+  // que mandou a notificação da proposta para a aba Promoções.
+  const html = `<!doctype html>
+<html lang="pt-BR">
+<head><meta charset="utf-8"><title>${escapeHtml(subject)}</title></head>
+<body style="margin:0;padding:24px;background:#ffffff;color:#1d1d1f;font-family:-apple-system,'Segoe UI',Helvetica,Arial,sans-serif;font-size:15px;line-height:1.6">
+<p style="margin:0 0 20px">${escapeHtml(heading)} de <strong>${escapeHtml(brandName)}</strong>.</p>
+${brief.instagram ? `<p style="margin:0 0 8px">Instagram: ${escapeHtml(brief.instagram)}</p>` : ''}
+${brief.description ? `<p style="margin:0 0 20px;white-space:pre-wrap">${escapeHtml(brief.description)}</p>` : ''}
+<table style="margin:0 0 20px;border-collapse:collapse;font-size:14px">${rows}</table>
+${brief.notes ? `<p style="margin:0 0 20px;color:#6e6e73;white-space:pre-wrap">Observações: ${escapeHtml(brief.notes)}</p>` : ''}
+${adminLink ? `<p style="margin:0 0 24px"><a href="${escapeHtml(adminLink)}" style="color:#0066cc">Abrir o briefing completo</a></p>` : ''}
+<p style="margin:0;color:#86868b;font-size:13px">Responder este e-mail fala direto com o cliente.</p>
+</body>
+</html>`;
+
+  const text = `${heading} de ${brandName}\n\n`
+    + `${brief.description || ''}\n\n`
+    + materialLines(brief, files).map((r) => `${r.label}: ${r.value}`).join('\n')
+    + `\n\n${adminLink}`;
+
+  const res = await fetch('https://api.resend.com/emails', {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${RESEND_API_KEY}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      from: RESEND_FROM,
+      to: [OWNER_EMAIL],
+      ...(replyTo ? { reply_to: [replyTo] } : {}),
+      subject,
+      html,
+      text,
+    }),
+  });
+
+  if (!res.ok) {
+    console.error('[brief] Resend falhou:', res.status, await res.text());
+    return;
+  }
+  const { id } = await res.json().catch(() => ({}));
+  console.log(`[brief] e-mail aceito pelo Resend id=${id} de=${RESEND_FROM} para=${OWNER_EMAIL}`);
+}
 
 // ---------------------------------------------------------------------------
 // Handler
@@ -401,6 +503,50 @@ export default async function handler(req, res) {
         const delRes = await rest(`${FILES}?id=eq.${row.id}`, { method: 'DELETE' });
         if (!delRes.ok) throw new Error(`Supabase delete falhou: ${delRes.status}`);
         return res.status(200).json({});
+      }
+
+      if (action === 'submit') {
+        if (brief.status === 'submitted') {
+          return res.status(409).json({ error: 'briefing já enviado' });
+        }
+        // Material é todo opcional — a escapatória do WhatsApp existe justamente
+        // para isso. Estes dois não: sem eles não há briefing.
+        if (!String(brief.brand_name || '').trim()) {
+          return res.status(400).json({ error: 'preencha o nome da marca' });
+        }
+        if (!String(brief.description || '').trim()) {
+          return res.status(400).json({ error: 'preencha a descrição da marca' });
+        }
+
+        const isUpdate = Boolean(brief.submitted_at);
+        const now = new Date().toISOString();
+
+        // GRAVA PRIMEIRO. E-mail e planilha vêm depois, e nenhum dos dois pode
+        // derrubar um envio que o cliente já considera feito.
+        const patchRes = await rest(`${BRIEFS}?id=eq.${brief.id}`, {
+          method: 'PATCH',
+          headers: { Prefer: 'return=representation' },
+          body: JSON.stringify({ status: 'submitted', submitted_at: now, updated_at: now }),
+        });
+        if (!patchRes.ok) throw new Error(`Supabase patch falhou: ${patchRes.status}`);
+
+        const files = await filesOf(brief.id);
+        await notify({ ...brief, status: 'submitted', submitted_at: now }, files, { isUpdate })
+          .catch((err) => console.error('[brief] notificação falhou:', err));
+
+        return res.status(200).json({ status: 'submitted', submittedAt: now });
+      }
+
+      if (action === 'reopen') {
+        // Sem isto, o cliente que esqueceu a logo não tem saída nenhuma.
+        const now = new Date().toISOString();
+        const patchRes = await rest(`${BRIEFS}?id=eq.${brief.id}`, {
+          method: 'PATCH',
+          headers: { Prefer: 'return=representation' },
+          body: JSON.stringify({ status: 'draft', updated_at: now }),
+        });
+        if (!patchRes.ok) throw new Error(`Supabase patch falhou: ${patchRes.status}`);
+        return res.status(200).json({ status: 'draft' });
       }
 
       return res.status(400).json({ error: 'ação inválida' });

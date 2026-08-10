@@ -66,6 +66,29 @@ export const autosave = {
   error: 'Não consegui salvar — vou tentar de novo',
 };
 
+export const submit = {
+  heading: 'Pronto para enviar?',
+  // Bloquear o envio por material faltando seria o mesmo beco sem saída que a
+  // escapatória do WhatsApp existe para evitar.
+  partial: 'Você pode enviar assim mesmo — o que faltar a gente resolve depois.',
+  action: 'Enviar briefing',
+  sending: 'Enviando…',
+
+  doneKicker: 'Recebido',
+  doneHeading: 'Briefing enviado. Obrigado!',
+  doneBody:
+    'Já chegou aqui e eu vou ler com calma. Se surgir dúvida, te chamo no WhatsApp. '
+    + 'Precisa mudar alguma coisa? Dá para reabrir a qualquer momento.',
+  reopen: 'Preciso corrigir alguma coisa',
+  reopening: 'Reabrindo…',
+
+  stateLabel: {
+    recebido: 'recebido',
+    enviado_whatsapp: 'pelo WhatsApp',
+    nao_enviado: 'não enviado',
+  },
+};
+
 export const states = {
   loading: 'Abrindo o briefing…',
 

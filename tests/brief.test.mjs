@@ -2,6 +2,14 @@ process.env.SUPABASE_URL = ' https://fake.supabase.co/ ';           // sujo de p
 process.env.SUPABASE_SERVICE_ROLE_KEY = '\n\nservice-key\n';        // sujo de propósito
 process.env.OWNER_TOKEN = '  segredo-do-joao\n';                    // sujo de propósito
 process.env.BRIEF_BUCKET = 'brand-briefs';
+process.env.RESEND_API_KEY = 're_fake';
+process.env.RESEND_FROM = 'Briefing <brief@dominio.com>';
+process.env.OWNER_EMAIL = 'joao@exemplo.com';
+process.env.SITE_URL = 'https://www.joaogsantos.com';
+
+// O teste liga e desliga a falha do Resend para provar que o e-mail não derruba
+// um envio já gravado.
+let resendFails = false;
 
 const BRIEF_ID = 'b1111111-1111-1111-1111-111111111111';
 const TOKEN = 'tokenvalido';
@@ -41,6 +49,14 @@ globalThis.fetch = async (url, init = {}) => {
   const u = String(url);
   const method = init.method || 'GET';
   calls.push({ url: u, method, body: init.body, headers: init.headers });
+
+  // ---- Resend ----
+  if (u.includes('api.resend.com')) {
+    if (resendFails) {
+      return { ok: false, status: 500, text: async () => 'boom', json: async () => ({}) };
+    }
+    return { ok: true, status: 200, text: async () => '', json: async () => ({ id: 'email_1' }) };
+  }
 
   // ---- Storage ----
   if (u.includes('/storage/v1/object/upload/sign/')) {
@@ -220,6 +236,65 @@ check('URL sem espaço nem barra dupla',
   supaCall.url.startsWith('https://fake.supabase.co/rest/v1/'), supaCall.url);
 check('OWNER_TOKEN sujo ainda autentica o dono',
   (await run({ method: 'GET', query: { owner: 'segredo-do-joao' } })).statusCode === 200);
+
+// ------------------------------------------------------- submit / reopen
+const mail = () => JSON.parse(calls.filter((c) => c.url.includes('resend')).at(-1).body);
+
+brief.brand_name = '';
+res = await run({ method: 'POST', body: { action: 'submit', c: TOKEN } });
+check('submit sem nome da marca = 400', res.statusCode === 400, JSON.stringify(res.payload));
+
+brief.brand_name = '<img src=x onerror=alert(1)>';
+brief.description = '';
+res = await run({ method: 'POST', body: { action: 'submit', c: TOKEN } });
+check('submit sem descrição = 400', res.statusCode === 400);
+
+brief.description = '<script>alert(1)</script> clínica de dermatologia';
+brief.whatsapp_fields = ['fotos'];
+res = await run({ method: 'POST', body: { action: 'submit', c: TOKEN } });
+check('submit válido = 200', res.statusCode === 200, JSON.stringify(res.payload));
+check('grava status submitted', brief.status === 'submitted', String(brief.status));
+check('grava submitted_at', Boolean(brief.submitted_at));
+
+let m = mail();
+check('e-mail vai para OWNER_EMAIL', m.to[0] === 'joao@exemplo.com', JSON.stringify(m.to));
+check('reply_to é o e-mail do cliente', m.reply_to[0] === 'marcelo@exemplo.com', JSON.stringify(m.reply_to));
+check('HTML da marca é escapado', !m.html.includes('<img src=x'), 'vazou');
+check('HTML da descrição é escapado', !m.html.includes('<script>'), 'vazou');
+check('e-mail cita campo enviado por WhatsApp', m.html.includes('enviado por WhatsApp'));
+check('e-mail cita campo não enviado', m.html.includes('não enviado'));
+check('e-mail declara lang pt-BR', m.html.includes('lang="pt-BR"'));
+check('e-mail NÃO contém o OWNER_TOKEN', !m.html.includes('segredo-do-joao'), 'vazou o token');
+check('e-mail NÃO contém URL assinada', !m.html.includes('/object/upload/sign/'), 'vazou url assinada');
+check('link do admin não leva token', m.html.includes('/brief-admin?id=') && !m.html.includes('owner='));
+
+res = await run({ method: 'POST', body: { action: 'submit', c: TOKEN } });
+check('submit num briefing já enviado = 409', res.statusCode === 409);
+
+res = await run({ method: 'POST', body: { action: 'reopen', c: TOKEN } });
+check('reopen devolve para draft', res.statusCode === 200 && brief.status === 'draft', String(brief.status));
+
+// Reenvio: assunto marcado como atualização.
+res = await run({ method: 'POST', body: { action: 'submit', c: TOKEN } });
+check('reenvio funciona', res.statusCode === 200);
+check('assunto do reenvio marca atualização', mail().subject.includes('atualizado'), mail().subject);
+
+// Falha do Resend não pode derrubar um envio já gravado.
+await run({ method: 'POST', body: { action: 'reopen', c: TOKEN } });
+resendFails = true;
+res = await run({ method: 'POST', body: { action: 'submit', c: TOKEN } });
+check('Resend falhando ainda devolve 200', res.statusCode === 200, JSON.stringify(res.payload));
+check('Resend falhando mantém status submitted', brief.status === 'submitted', String(brief.status));
+resendFails = false;
+
+// Sem client_email o e-mail ainda sai, e reply_to é omitido (o Resend recusa vazio).
+await run({ method: 'POST', body: { action: 'reopen', c: TOKEN } });
+brief.client_email = null;
+await run({ method: 'POST', body: { action: 'submit', c: TOKEN } });
+check('sem client_email o e-mail ainda sai', mail().to[0] === 'joao@exemplo.com');
+check('sem client_email o reply_to é omitido', mail().reply_to === undefined, JSON.stringify(mail().reply_to));
+brief.client_email = 'marcelo@exemplo.com';
+await run({ method: 'POST', body: { action: 'reopen', c: TOKEN } });
 
 // ------------------------------------------------------------- método
 res = await run({ method: 'DELETE', body: {} });
