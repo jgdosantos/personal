@@ -292,6 +292,8 @@ await run({ method: 'POST', body: { action: 'reopen', c: TOKEN } });
 brief.client_email = null;
 await run({ method: 'POST', body: { action: 'submit', c: TOKEN } });
 check('sem client_email o e-mail ainda sai', mail().to[0] === 'joao@exemplo.com');
+check('remetente diz Briefing, não Proposta', mail().from.startsWith('Briefing <'), mail().from);
+check('remetente reaproveita o endereço verificado', mail().from.includes('brief@dominio.com'), mail().from);
 check('sem client_email o reply_to é omitido', mail().reply_to === undefined, JSON.stringify(mail().reply_to));
 brief.client_email = 'marcelo@exemplo.com';
 await run({ method: 'POST', body: { action: 'reopen', c: TOKEN } });

@@ -215,6 +215,12 @@ async function notify(brief, files, { isUpdate }) {
     return;
   }
 
+  // RESEND_FROM é compartilhado com /api/comments e traz o nome "Proposta".
+  // Num aviso de briefing isso confunde a caixa de entrada. Reaproveita o
+  // endereço — que é o que está verificado no Resend — e troca só o rótulo.
+  const address = (RESEND_FROM.match(/<([^>]+)>/) || [null, RESEND_FROM])[1].trim();
+  const from = `Briefing <${address}>`;
+
   const heading = isUpdate ? 'Briefing de marca atualizado' : 'Briefing de marca';
   const brandName = brief.brand_name || brief.client_label || 'sem nome';
   const subject = `${heading} — ${brandName}`;
@@ -253,7 +259,7 @@ ${adminLink ? `<p style="margin:0 0 24px"><a href="${escapeHtml(adminLink)}" sty
     method: 'POST',
     headers: { Authorization: `Bearer ${RESEND_API_KEY}`, 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      from: RESEND_FROM,
+      from,
       to: [OWNER_EMAIL],
       ...(replyTo ? { reply_to: [replyTo] } : {}),
       subject,
@@ -267,7 +273,7 @@ ${adminLink ? `<p style="margin:0 0 24px"><a href="${escapeHtml(adminLink)}" sty
     return;
   }
   const { id } = await res.json().catch(() => ({}));
-  console.log(`[brief] e-mail aceito pelo Resend id=${id} de=${RESEND_FROM} para=${OWNER_EMAIL}`);
+  console.log(`[brief] e-mail aceito pelo Resend id=${id} de=${from} para=${OWNER_EMAIL}`);
 }
 
 // ---------------------------------------------------------------------------
