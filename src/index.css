@@ -1,4 +1,9 @@
 @import "tailwindcss";
+/* PERF: @import de fonte cria cadeia crítica em série — o browser só
+   descobre fonts.googleapis.com depois de baixar e parsear este CSS. O
+   ganho real seria <link rel="preconnect"> + <link rel="stylesheet"> no
+   index.html, que está fora do escopo desta alteração. `display=swap` já
+   evita texto invisível durante o download. */
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap');
 
 * {
@@ -35,6 +40,53 @@ h3 {
 p {
   font-size: clamp(1rem, 2vw, 1.125rem);
   line-height: 1.75;
+}
+
+/* ----------------------------------------------------------------------
+   Escopo tipográfico da proposta (/proposta-marcelo)
+
+   As regras de elemento acima moram FORA de qualquer @layer, e no Tailwind
+   v4 as utilidades moram dentro de `@layer utilities`. Declaração sem layer
+   ganha de qualquer layer, então `h2 { font-size: clamp(...); font-weight:
+   600 }` vencia silenciosamente todo `text-6xl font-black` da página — e
+   `p { font-size: clamp(1rem,2vw,1.125rem) }` derrubava os preços em
+   `text-5xl` para 18px. A hierarquia inteira da proposta era anulada.
+
+   `revert-layer` devolve a decisão para a layer de baixo (utilities), ou
+   seja, para as classes escritas no JSX, sem tocar no resto do site: fora
+   de .proposta-page as regras globais continuam valendo exatamente como
+   antes. Em browser sem suporte a declaração é ignorada e o comportamento
+   atual permanece.
+   ---------------------------------------------------------------------- */
+.proposta-page :is(h1, h2, h3, h4, p) {
+  font-size: revert-layer;
+  font-weight: revert-layer;
+  line-height: revert-layer;
+}
+
+/* Quem pediu menos movimento não deve receber conteúdo que começa em
+   opacity: 0 e depende de animação para aparecer. */
+@media (prefers-reduced-motion: reduce) {
+
+  html,
+  body {
+    scroll-behavior: auto;
+  }
+
+  .animate-on-scroll,
+  .animate-on-scroll.is-visible {
+    opacity: 1 !important;
+    animation: none !important;
+  }
+
+  .timeline-line {
+    transition: none;
+    transform: scaleY(1);
+  }
+
+  .timeline-dot {
+    transition: none;
+  }
 }
 
 /* Scroll Animations */
