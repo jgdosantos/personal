@@ -3,18 +3,24 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 // ============================================
 // BOAS-VINDAS — só na primeira visita
 // ============================================
-// A tela cobre a proposta por ~3s, apresenta o projeto e ensina a única
+// A tela cobre a proposta por ~7s, apresenta o projeto e ensina a única
 // funcionalidade não óbvia da página: comentar num trecho. Depois some e
 // nunca mais aparece — a marca fica no localStorage.
 
 const STORAGE_KEY = 'proposta:welcomed';
 
-// Tempo até o auto-dismiss, contado do mount. A entrada escalonada termina
-// em ~1.1s, o que deixa ~1.8s de leitura antes da saída começar.
-const AUTO_DISMISS_MS = 2900;
-const EXIT_MS = 500;
-// Sem movimento não há entrada para assistir: mostra pronto e sai antes.
-const REDUCED_DISMISS_MS = 1600;
+// Tempo até o auto-dismiss, contado do mount. A entrada escalonada termina em
+// ~1.5s, deixando ~5s de leitura antes de a saída começar.
+//
+// A primeira versão saía em 2.9s e ficou agitada: mal terminava de entrar e já
+// estava indo embora, e ninguém lê três blocos de texto nesse intervalo. O
+// movimento também era rápido demais para um momento que é de acolhimento, não
+// de eficiência — daí as durações mais longas e a curva mais suave abaixo.
+const AUTO_DISMISS_MS = 6500;
+const EXIT_MS = 700;
+// Sem movimento não há entrada para assistir, mas o texto continua o mesmo:
+// tempo de leitura ainda é necessário.
+const REDUCED_DISMISS_MS = 4500;
 
 // Fallback para navegador com storage bloqueado: pelo menos não repete a
 // boas-vindas a cada remontagem dentro do mesmo carregamento.
@@ -66,9 +72,9 @@ const reveal = (shown, reduced, delay) =>
     ? undefined
     : {
         opacity: shown ? 1 : 0,
-        transform: shown ? 'translateY(0)' : 'translateY(14px)',
+        transform: shown ? 'translateY(0)' : 'translateY(18px)',
         transitionProperty: 'opacity, transform',
-        transitionDuration: '700ms',
+        transitionDuration: '1100ms',
         transitionTimingFunction: 'cubic-bezier(0.16, 1, 0.3, 1)',
         transitionDelay: `${delay}ms`,
       };
@@ -155,7 +161,7 @@ const WelcomeOverlay = ({ onDone }) => {
       onClick={dismiss}
       className={[
         'fixed inset-0 z-[100] flex items-center overflow-hidden bg-black print:hidden',
-        reduced ? '' : 'transition-opacity duration-500 ease-out',
+        reduced ? '' : 'transition-opacity duration-700 ease-out',
         leaving ? 'pointer-events-none opacity-0' : 'opacity-100',
       ].join(' ')}
     >
@@ -171,7 +177,7 @@ const WelcomeOverlay = ({ onDone }) => {
       <div
         className={[
           'relative z-10 mx-auto w-full max-w-6xl px-6 md:px-8',
-          reduced ? '' : 'transition-transform duration-500 ease-out',
+          reduced ? '' : 'transition-transform duration-700 ease-out',
           leaving && !reduced ? '-translate-y-3' : 'translate-y-0',
         ].join(' ')}
       >
@@ -187,7 +193,7 @@ const WelcomeOverlay = ({ onDone }) => {
           style={{
             fontSize: 'clamp(2.25rem, 6vw, 84px)',
             marginLeft: '-0.04em',
-            ...reveal(shown, reduced, 90),
+            ...reveal(shown, reduced, 200),
           }}
           className="mt-5 font-medium leading-[0.95] tracking-tighter text-white"
         >
@@ -195,12 +201,12 @@ const WelcomeOverlay = ({ onDone }) => {
         </h2>
 
         <div
-          style={reveal(shown, reduced, 180)}
+          style={reveal(shown, reduced, 420)}
           className="mt-8 h-px w-full max-w-[52ch] bg-white/15 md:mt-10"
         />
 
         <p
-          style={reveal(shown, reduced, 240)}
+          style={reveal(shown, reduced, 560)}
           className="mt-8 max-w-[52ch] text-lg leading-[1.6] text-gray-300 md:mt-10 md:text-xl"
         >
           Preparei esta proposta para o site da clínica da sua esposa. Escopo, prazo e
@@ -208,7 +214,7 @@ const WelcomeOverlay = ({ onDone }) => {
         </p>
 
         <p
-          style={reveal(shown, reduced, 320)}
+          style={reveal(shown, reduced, 760)}
           className="mt-4 max-w-[52ch] text-base leading-[1.6] text-gray-500"
         >
           Se algo não fizer sentido, comente direto no trecho: toque em Comentar, marque o
@@ -216,7 +222,7 @@ const WelcomeOverlay = ({ onDone }) => {
         </p>
 
         <div
-          style={reveal(shown, reduced, 400)}
+          style={reveal(shown, reduced, 960)}
           className="mt-10 flex flex-wrap items-center gap-x-6 gap-y-4 md:mt-12"
         >
           <button
