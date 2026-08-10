@@ -6,6 +6,7 @@ process.env.RESEND_API_KEY = 're_fake';
 process.env.RESEND_FROM = 'Briefing <brief@dominio.com>';
 process.env.OWNER_EMAIL = 'joao@exemplo.com';
 process.env.SITE_URL = 'https://www.joaogsantos.com';
+process.env.BRIEF_FROM = 'Briefing <briefing@dominio.com>';
 
 // O teste liga e desliga a falha do Resend para provar que o e-mail não derruba
 // um envio já gravado.
@@ -316,8 +317,8 @@ await run({ method: 'POST', body: { action: 'reopen', c: TOKEN } });
 brief.client_email = null;
 await run({ method: 'POST', body: { action: 'submit', c: TOKEN } });
 check('sem client_email o e-mail ainda sai', mail().to[0] === 'joao@exemplo.com');
-check('remetente diz Briefing, não Proposta', mail().from.startsWith('Briefing <'), mail().from);
-check('remetente reaproveita o endereço verificado', mail().from.includes('brief@dominio.com'), mail().from);
+check('remetente usa o endereço próprio do briefing', mail().from === 'Briefing <briefing@dominio.com>', mail().from);
+check('remetente não é o da proposta', !mail().from.includes('brief@dominio.com'), mail().from);
 check('sem client_email o reply_to é omitido', mail().reply_to === undefined, JSON.stringify(mail().reply_to));
 brief.client_email = 'marcelo@exemplo.com';
 await run({ method: 'POST', body: { action: 'reopen', c: TOKEN } });

@@ -28,6 +28,11 @@ const OWNER_TOKEN = env('OWNER_TOKEN');
 const BUCKET = env('BRIEF_BUCKET') || 'brand-briefs';
 const RESEND_API_KEY = env('RESEND_API_KEY');
 const RESEND_FROM = env('RESEND_FROM');
+// Remetente próprio do briefing. Compartilhar o endereço da proposta fazia uma
+// regra de filtro do Gmail capturar os dois de uma vez — foi o que engoliu a
+// primeira notificação. Endereço distinto no MESMO domínio verificado mantém a
+// entregabilidade e separa as duas conversas para sempre.
+const BRIEF_FROM = env('BRIEF_FROM');
 const OWNER_EMAIL = env('OWNER_EMAIL');
 const SITE_URL = env('SITE_URL').replace(/\/+$/, '');
 
@@ -218,11 +223,10 @@ async function notify(brief, files, { isUpdate }) {
     return;
   }
 
-  // RESEND_FROM é compartilhado com /api/comments e traz o nome "Proposta".
-  // Num aviso de briefing isso confunde a caixa de entrada. Reaproveita o
-  // endereço — que é o que está verificado no Resend — e troca só o rótulo.
+  // Sem BRIEF_FROM, cai no endereço da proposta trocando só o rótulo: funciona,
+  // mas continua no mesmo endereço, e uma regra de filtro captura os dois.
   const address = (RESEND_FROM.match(/<([^>]+)>/) || [null, RESEND_FROM])[1].trim();
-  const from = `Briefing <${address}>`;
+  const from = BRIEF_FROM || `Briefing <${address}>`;
 
   const heading = isUpdate ? 'Briefing de marca atualizado' : 'Briefing de marca';
   const brandName = brief.brand_name || brief.client_label || 'sem nome';
