@@ -84,6 +84,29 @@ const Composer = ({ placeholder, submitLabel, onSubmit, autoFocus = false }) => 
   );
 };
 
+/**
+ * Diz de que lado da conversa veio o comentário. O rótulo é relativo a quem
+ * está lendo: o mesmo comentário do João aparece como "você" para ele e como
+ * "autor da proposta" para o cliente.
+ */
+const RoleBadge = ({ role, viewerIsOwner }) => {
+  const mine = (role === 'owner') === viewerIsOwner;
+  const label = mine ? 'você' : role === 'owner' ? 'autor da proposta' : 'cliente';
+
+  return (
+    <span
+      className={[
+        'rounded-full px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.12em]',
+        role === 'owner'
+          ? 'bg-black text-white'
+          : 'border border-black/25 text-gray-500',
+      ].join(' ')}
+    >
+      {label}
+    </span>
+  );
+};
+
 const StartButton = ({ onClick, className = '' }) => (
   <button
     type="button"
@@ -96,7 +119,7 @@ const StartButton = ({ onClick, className = '' }) => (
 );
 
 const Thread = ({ thread }) => {
-  const { activeThreadId, setActiveThreadId, reply } = useComments();
+  const { activeThreadId, setActiveThreadId, reply, isOwner } = useComments();
   const isActive = thread.id === activeThreadId;
 
   return (
@@ -110,10 +133,11 @@ const Thread = ({ thread }) => {
           {thread.number}
         </span>
         <span className="min-w-0 flex-1">
-          <span className="flex items-baseline gap-2">
+          <span className="flex flex-wrap items-center gap-2">
             <span className="text-[11px] font-bold uppercase tracking-[0.15em] text-black">
               {thread.authorName}
             </span>
+            <RoleBadge role={thread.authorRole} viewerIsOwner={isOwner} />
             <span className="text-[10px] uppercase tracking-widest text-gray-400">
               {timeAgo(thread.createdAt)}
             </span>
@@ -126,11 +150,12 @@ const Thread = ({ thread }) => {
         <ul className="mt-4 space-y-3 border-l border-black/15 pl-4 ml-3">
           {thread.replies.map((r) => (
             <li key={r.id}>
-              <div className="flex items-baseline gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 <CornerDownRight size={12} className="text-gray-400" />
                 <span className="text-[11px] font-bold uppercase tracking-[0.15em] text-black">
                   {r.authorName}
                 </span>
+                <RoleBadge role={r.authorRole} viewerIsOwner={isOwner} />
                 <span className="text-[10px] uppercase tracking-widest text-gray-400">
                   {timeAgo(r.createdAt)}
                 </span>
@@ -158,7 +183,7 @@ const Thread = ({ thread }) => {
 export const CommentsPanel = () => {
   const {
     threads, status, mode, setMode, draft, setDraft,
-    panelOpen, setPanelOpen, createThread, isOwner,
+    panelOpen, setPanelOpen, createThread, isOwner, authorName,
   } = useComments();
 
   const total = threads.reduce((sum, t) => sum + 1 + t.replies.length, 0);
@@ -227,8 +252,16 @@ export const CommentsPanel = () => {
             <h2 className="text-xl font-black uppercase tracking-tighter text-black">
               Comentários
             </h2>
-            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-gray-400">
-              {isOwner ? 'Você · João Gabriel' : 'Conversa sobre a proposta'}
+            {/* Sem isso dá para comentar a sessão inteira como visitante sem
+                perceber que o link abriu sem o ?owner=. */}
+            <p className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.2em] text-gray-400">
+              <span
+                className={`inline-block h-1.5 w-1.5 rounded-full ${isOwner ? 'bg-black' : 'border border-black/40'}`}
+              />
+              Comentando como
+              <span className="text-black">
+                {isOwner ? 'João Gabriel' : authorName || 'visitante'}
+              </span>
             </p>
           </div>
           <button
