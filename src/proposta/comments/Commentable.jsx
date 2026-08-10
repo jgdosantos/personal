@@ -1,7 +1,7 @@
 import React, { useCallback } from 'react';
 import { useComments } from './context.js';
 
-const Pin = ({ label, active, draft, resolved, relX, relY, onClick, title }) => (
+const Pin = ({ label, active, draft, relX, relY, onClick, title }) => (
   <button
     type="button"
     onClick={onClick}
@@ -19,11 +19,7 @@ const Pin = ({ label, active, draft, resolved, relX, relY, onClick, title }) => 
         ? 'border-dashed border-neutral-900/45 bg-white text-neutral-900 shadow-[0_2px_8px_-2px_rgba(0,0,0,0.2)] animate-pulse'
         : active
           ? 'border-neutral-900/80 bg-white text-neutral-900 shadow-[0_0_0_5px_rgba(0,0,0,0.07),0_2px_8px_-2px_rgba(0,0,0,0.25)]'
-          // Resolvido não some da página — some do primeiro plano. Continua
-          // clicável para reler a conversa, só para de disputar atenção.
-          : resolved
-            ? 'border-white/60 bg-neutral-300 text-white opacity-70 shadow-none'
-            : 'border-white/70 bg-neutral-900 text-white shadow-[0_2px_8px_-1px_rgba(0,0,0,0.3)]',
+          : 'border-white/70 bg-neutral-900 text-white shadow-[0_2px_8px_-1px_rgba(0,0,0,0.3)]',
     ].join(' ')}
   >
     {label}
@@ -42,7 +38,9 @@ export const Commentable = ({ id, children, className = '' }) => {
   } = useComments();
 
   const commenting = mode === 'comment';
-  const pins = threads.filter((t) => t.anchorId === id);
+  // Thread resolvida perde o pin: a página vai ficando limpa conforme a revisão
+  // avança, e a conversa continua no painel, atrás do expansor "resolvidos".
+  const pins = threads.filter((t) => t.anchorId === id && !t.resolvedAt);
   const localDraft = draft && draft.anchorId === id ? draft : null;
 
   const handleClick = useCallback((event) => {
@@ -87,13 +85,8 @@ export const Commentable = ({ id, children, className = '' }) => {
           relX={thread.relX}
           relY={thread.relY}
           active={thread.id === activeThreadId}
-          resolved={Boolean(thread.resolvedAt)}
           onClick={openThread(thread.id)}
-          title={
-            thread.resolvedAt
-              ? `Comentário ${thread.number} — ${thread.authorName} (resolvido)`
-              : `Comentário ${thread.number} — ${thread.authorName}`
-          }
+          title={`Comentário ${thread.number} — ${thread.authorName}`}
         />
       ))}
       {localDraft && (

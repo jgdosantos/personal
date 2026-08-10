@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { MessageSquarePlus, MessageSquare, X, Send, Check } from 'lucide-react';
+import { MessageSquarePlus, MessageSquare, X, Send, Check, RotateCcw, ChevronRight } from 'lucide-react';
 import { useComments } from './context.js';
 
 const timeAgo = (iso) => {
@@ -123,26 +123,28 @@ const StartButton = ({ onClick, className = '' }) => (
 );
 
 /**
- * Marca a thread como resolvida. Fica fora do <button> que abre a thread —
- * botão dentro de botão é HTML inválido e o clique vira loteria.
+ * Ação de resolver, no canto superior direito do card como no Google Docs.
+ *
+ * A primeira versão era um círculo à esquerda com o check em text-transparent,
+ * visível só no hover — ou seja, invisível no celular e fácil de ignorar no
+ * desktop. Agora é um botão rotulado, sempre visível, fora do <button> que abre
+ * a thread (botão dentro de botão é HTML inválido).
  */
-const ResolveCheck = ({ resolved, onToggle }) => (
+const ResolveButton = ({ resolved, onToggle }) => (
   <button
     type="button"
     onClick={onToggle}
-    role="checkbox"
-    aria-checked={resolved}
     aria-label={resolved ? 'Reabrir comentário' : 'Marcar como resolvido'}
-    title={resolved ? 'Reabrir' : 'Marcar como resolvido'}
     className={[
-      'mt-0.5 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full border transition-all duration-200',
+      'inline-flex h-8 flex-shrink-0 items-center gap-1.5 rounded-full px-3 text-[12px] font-medium transition-all duration-200',
       focusRing,
       resolved
-        ? 'border-transparent bg-neutral-900 text-white'
-        : 'border-neutral-300 text-transparent hover:border-neutral-900 hover:text-neutral-300',
+        ? 'bg-neutral-900/[0.06] text-neutral-500 hover:bg-neutral-900/[0.1]'
+        : 'bg-neutral-900/[0.06] text-neutral-600 hover:bg-neutral-900 hover:text-white',
     ].join(' ')}
   >
-    <Check size={13} strokeWidth={2.6} />
+    {resolved ? <RotateCcw size={13} strokeWidth={2.2} /> : <Check size={14} strokeWidth={2.4} />}
+    {resolved ? 'Reabrir' : 'Resolver'}
   </button>
 );
 
@@ -154,12 +156,14 @@ const Thread = ({ thread }) => {
   return (
     <li
       className={[
-        'mx-3 flex gap-3 rounded-2xl px-4 py-3.5 transition-colors duration-200',
+        'mx-3 rounded-2xl px-4 py-3.5 transition-colors duration-200',
         isActive ? 'bg-neutral-900/[0.045]' : 'hover:bg-neutral-900/[0.025]',
-        resolved ? 'opacity-55' : '',
+        resolved ? 'opacity-60' : '',
       ].join(' ')}
     >
-      <ResolveCheck resolved={resolved} onToggle={() => toggleResolved(thread.id, !resolved)} />
+      <div className="mb-1 flex items-center justify-end">
+        <ResolveButton resolved={resolved} onToggle={() => toggleResolved(thread.id, !resolved)} />
+      </div>
 
       <div className="min-w-0 flex-1">
       <button
@@ -229,9 +233,13 @@ export const CommentsPanel = () => {
     panelOpen, setPanelOpen, createThread, canBeOwner,
   } = useComments();
 
+  const [showResolved, setShowResolved] = useState(false);
+
   // O contador mostra o que falta tratar, não o volume da conversa: uma
   // proposta toda resolvida deve marcar zero, não "12 comentários".
-  const open = threads.filter((t) => !t.resolvedAt).length;
+  const openThreads = threads.filter((t) => !t.resolvedAt);
+  const resolvedThreads = threads.filter((t) => t.resolvedAt);
+  const open = openThreads.length;
 
   // Fecha o painel e entra em modo comentário. Sem isso o painel aberto vira um
   // beco sem saída: ele manda "toque em Comentar", mas a barra flutuante que
@@ -368,11 +376,52 @@ export const CommentsPanel = () => {
             </div>
           )}
 
+          {/* Tudo resolvido não pode virar uma lista em branco: sem isto o
+              painel parecia vazio, como se os comentários tivessem sumido. */}
+          {status === 'ready' && open === 0 && threads.length > 0 && !draft && (
+            <div className="px-7 py-8">
+              <span className="mb-3 flex h-11 w-11 items-center justify-center rounded-2xl bg-neutral-900/[0.05] text-neutral-400">
+                <Check size={20} strokeWidth={2} />
+              </span>
+              <p className="text-[14px] leading-[1.6] text-neutral-500">
+                Nada em aberto. Todos os comentários foram resolvidos.
+              </p>
+            </div>
+          )}
+
+          {/* Resolvido sai da lista principal, como no Google Docs: o painel
+              mostra o que ainda precisa de atenção. O histórico continua
+              acessível atrás do expansor, nunca apagado. */}
           <ul className="space-y-0.5">
-            {threads.map((thread) => (
+            {openThreads.map((thread) => (
               <Thread key={thread.id} thread={thread} />
             ))}
           </ul>
+
+          {resolvedThreads.length > 0 && (
+            <div className="mt-2 border-t border-black/[0.06] pt-2">
+              <button
+                type="button"
+                onClick={() => setShowResolved((v) => !v)}
+                className={`mx-3 flex items-center gap-2 rounded-xl px-4 py-2.5 text-[13px] text-neutral-500 transition-colors duration-200 hover:text-neutral-900 ${focusRing}`}
+              >
+                <ChevronRight
+                  size={15}
+                  strokeWidth={2.1}
+                  className={`transition-transform duration-200 ${showResolved ? 'rotate-90' : ''}`}
+                />
+                {resolvedThreads.length} {resolvedThreads.length === 1 ? 'resolvido' : 'resolvidos'}
+              </button>
+
+              {showResolved && (
+                <ul className="mt-1 space-y-0.5">
+                  {resolvedThreads.map((thread) => (
+                    <Thread key={thread.id} thread={thread} />
+                  ))}
+                </ul>
+              )}
+            </div>
+          )}
 
           {status === 'ready' && threads.length > 0 && !draft && (
             <div className="mt-2 border-t border-black/[0.06] px-7 py-6">
