@@ -24,12 +24,15 @@ const IdentityPicker = () => {
   if (!canBeOwner) return null;
 
   return (
-    <label className="flex items-center gap-2.5 text-[12px] text-neutral-500">
-      Comentar como
+    // Faixa própria, fora da linha do título. Espremido ao lado do h2 e do botão
+    // de fechar, num contêiner min-w-0, o select encolhia até o rótulo sumir e
+    // parecia um dropdown vazio. flex-1 + min-w garantem largura para o texto.
+    <label className="flex items-center gap-2.5 border-b border-black/[0.06] px-5 py-2.5 text-[12px] text-neutral-500">
+      <span className="flex-shrink-0">Comentar como</span>
       <select
         value={identity}
         onChange={(e) => setIdentity(e.target.value)}
-        className={`h-10 rounded-xl border border-black/[0.07] bg-neutral-100/70 px-3 text-[13px] font-medium text-neutral-900 transition-colors duration-200 hover:bg-neutral-100 ${focusRing}`}
+        className={`h-9 min-w-[9.5rem] flex-1 rounded-xl border border-black/[0.07] bg-neutral-100/70 px-3 text-[13px] font-medium text-neutral-900 transition-colors duration-200 hover:bg-neutral-100 ${focusRing}`}
       >
         <option value="client">Cliente</option>
         <option value="owner">João Gabriel</option>
@@ -310,17 +313,11 @@ export const CommentsPanel = () => {
             <h2 className="text-[17px] font-semibold tracking-[-0.02em] text-neutral-900">
               Comentários
             </h2>
-            {/* O seletor mora aqui, e não dentro do composer, para estar sempre
-                alcançável: no composer só aparecia depois de abrir um rascunho,
-                então trocar de lado exigia começar um comentário antes.
-                Para quem não tem o token não há escolha — só o indicador, que
-                evita comentar a sessão inteira como cliente sem perceber que o
-                link abriu sem o ?owner=. */}
-            {canBeOwner ? (
-              <div className="mt-1.5">
-                <IdentityPicker />
-              </div>
-            ) : (
+            {/* Sem token não há escolha a fazer — fica só o indicador, que evita
+                comentar a sessão inteira como cliente sem perceber que o link
+                abriu sem o ?owner=. Quem tem token vê o seletor na faixa abaixo,
+                fora desta linha, onde há largura garantida. */}
+            {!canBeOwner && (
               <p className="mt-0.5 flex items-center gap-1.5 text-[12px] text-neutral-400">
                 <span className="inline-block h-1.5 w-1.5 flex-shrink-0 rounded-full border border-neutral-300" />
                 Comentando como
@@ -341,6 +338,8 @@ export const CommentsPanel = () => {
             <X size={17} strokeWidth={1.9} />
           </button>
         </header>
+
+        <IdentityPicker />
 
         <div className="flex-1 overflow-y-auto overscroll-contain py-2">
           {draft && (
