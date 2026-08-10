@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
-    "test:api": "node tests/comments.test.mjs && node tests/brief-fields.test.mjs",
+    "test:api": "node tests/comments.test.mjs && node tests/brief-fields.test.mjs && node tests/brief.test.mjs",
     "preview": "vite preview",
     "predeploy": "npm run build",
     "deploy": "gh-pages -d dist"
