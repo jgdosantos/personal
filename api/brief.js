@@ -65,6 +65,9 @@ const restHeaders = {
   'Content-Type': 'application/json',
 };
 
+// A URL de upload assinada pelo Storage vale cerca de 2h.
+const PENDING_TTL_MS = 2 * 60 * 60 * 1000;
+
 const MAX = { brandName: 120, instagram: 80, description: 1200, designSystemUrl: 500, notes: 1200 };
 
 // ---------------------------------------------------------------------------
@@ -422,7 +425,20 @@ export default async function handler(req, res) {
           return res.status(413).json({ error: 'arquivo maior que o limite do campo' });
         }
 
-        const inField = existing.filter((f) => f.field === field).length;
+        // Conta os prontos e apenas os pendentes ainda vivos.
+        //
+        // Contar todo pendente vazaria cota para sempre: upload que falha no
+        // meio — rede caindo, aba fechada — deixa a linha em `pending`, e o
+        // cliente perderia a vaga sem entender por quê. Contar só os prontos
+        // deixaria uma rajada de assinaturas simultâneas furar o teto.
+        //
+        // A URL assinada vale ~2h; pendente mais velho que isso não pode mais
+        // virar arquivo, então não deve mais ocupar lugar.
+        const now = Date.now();
+        const inField = existing.filter((f) => f.field === field && (
+          f.status === 'ready'
+          || now - new Date(f.created_at).getTime() < PENDING_TTL_MS
+        )).length;
         if (inField >= spec.maxCount) {
           return res.status(409).json({ error: `limite de ${spec.maxCount} arquivos neste campo` });
         }

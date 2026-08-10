@@ -220,6 +220,30 @@ await run({ method: 'POST', body: { action: 'sign', c: TOKEN, field: 'brandbook'
 res = await run({ method: 'POST', body: { action: 'sign', c: TOKEN, field: 'brandbook', fileName: 'c.pdf', contentType: 'application/pdf', size: 10 } });
 check('sign no maxCount do campo = 409', res.statusCode === 409, JSON.stringify(res.payload));
 
+// Pendente abandonado (mais de 2h) não pode ocupar vaga para sempre.
+files = files.filter((f) => f.field !== 'brandbook');
+files.push({
+  id: 'velho', brief_id: BRIEF_ID, field: 'brandbook', status: 'pending',
+  storage_path: `${BRIEF_ID}/brandbook/velho.pdf`, original_name: 'velho.pdf',
+  content_type: 'application/pdf', size_bytes: 10,
+  created_at: new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString(),
+});
+res = await run({ method: 'POST', body: { action: 'sign', c: TOKEN, field: 'brandbook', fileName: 'novo.pdf', contentType: 'application/pdf', size: 10 } });
+check('pendente abandonado não ocupa vaga', res.statusCode === 201, JSON.stringify(res.payload));
+
+// Pendente recente ainda ocupa: rajada de assinaturas não pode furar o teto.
+files = files.filter((f) => f.field !== 'brandbook');
+for (let i = 0; i < 2; i++) {
+  files.push({
+    id: `novo${i}`, brief_id: BRIEF_ID, field: 'brandbook', status: 'pending',
+    storage_path: `${BRIEF_ID}/brandbook/n${i}.pdf`, original_name: `n${i}.pdf`,
+    content_type: 'application/pdf', size_bytes: 10, created_at: new Date().toISOString(),
+  });
+}
+res = await run({ method: 'POST', body: { action: 'sign', c: TOKEN, field: 'brandbook', fileName: 'x.pdf', contentType: 'application/pdf', size: 10 } });
+check('pendente recente ainda ocupa vaga', res.statusCode === 409, JSON.stringify(res.payload));
+files = files.filter((f) => f.field !== 'brandbook');
+
 // ------------------------------------------------------- brief enviado
 brief.status = 'submitted';
 res = await run({ method: 'PATCH', body: { c: TOKEN, patch: { brandName: 'tarde demais' } } });
