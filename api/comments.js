@@ -73,25 +73,28 @@ async function notify({ comment, isReply, parentBody }) {
   const heading = isReply ? 'Nova resposta na proposta' : 'Novo comentário na proposta';
   const subject = `${heading} — ${comment.author_name}`;
 
-  const html = `
-    <div style="font-family:-apple-system,'Segoe UI',Helvetica,Arial,sans-serif;background:#ffffff;padding:32px;color:#000000">
-      <p style="margin:0 0 24px;font-size:11px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:#9ca3af">
-        ${escapeHtml(heading)}
-      </p>
-      ${parentBody ? `
-        <div style="border-left:2px solid #e5e7eb;padding-left:16px;margin-bottom:20px;color:#6b7280;font-size:14px;line-height:1.6">
-          ${escapeHtml(parentBody)}
-        </div>` : ''}
-      <p style="margin:0 0 6px;font-size:12px;font-weight:700;letter-spacing:.15em;text-transform:uppercase">
-        ${escapeHtml(comment.author_name)}
-      </p>
-      <p style="margin:0 0 28px;font-size:16px;line-height:1.6;white-space:pre-wrap">${escapeHtml(comment.body)}</p>
-      ${link ? `
-        <a href="${escapeHtml(link)}"
-           style="display:inline-block;border:1px solid #000;border-radius:9999px;padding:12px 28px;font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#000;text-decoration:none">
-          Abrir a proposta
-        </a>` : ''}
-    </div>`;
+  // Documento completo com lang="pt-BR": sem isso o Gmail chuta o idioma errado
+  // e oferece "traduzir do inglês" num texto que já está em português.
+  //
+  // O visual é deliberadamente sóbrio. A versão anterior tinha um botão grande
+  // em pílula com caixa alta espaçada, e o Gmail classificou a mensagem como
+  // Promoções — aba que ninguém acompanha. Notificação precisa parecer o que é:
+  // texto, um link comum, nada de peça de campanha.
+  const html = `<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>${escapeHtml(subject)}</title>
+</head>
+<body style="margin:0;padding:24px;background:#ffffff;color:#1d1d1f;font-family:-apple-system,'Segoe UI',Helvetica,Arial,sans-serif;font-size:15px;line-height:1.6">
+<p style="margin:0 0 20px">${escapeHtml(heading)} de <strong>${escapeHtml(comment.author_name)}</strong>:</p>
+${parentBody ? `<blockquote style="margin:0 0 20px;padding:0 0 0 14px;border-left:2px solid #e5e7eb;color:#6e6e73">${escapeHtml(parentBody)}</blockquote>` : ''}
+<p style="margin:0 0 24px;white-space:pre-wrap">${escapeHtml(comment.body)}</p>
+${link ? `<p style="margin:0 0 24px"><a href="${escapeHtml(link)}" style="color:#0066cc">Abrir a proposta e responder</a></p>` : ''}
+<p style="margin:0;color:#86868b;font-size:13px">Você pode responder este e-mail direto — a mensagem chega em quem comentou.</p>
+</body>
+</html>`;
 
   const res = await fetch('https://api.resend.com/emails', {
     method: 'POST',
@@ -107,7 +110,9 @@ async function notify({ comment, isReply, parentBody }) {
       ...(replyTo ? { reply_to: [replyTo] } : {}),
       subject,
       html,
-      text: `${heading}\n\n${comment.author_name}:\n${comment.body}\n\n${link}`,
+      text: `${heading} de ${comment.author_name}:\n\n${comment.body}\n\n`
+        + `${link ? `Abrir a proposta e responder: ${link}\n\n` : ''}`
+        + 'Você pode responder este e-mail direto — a mensagem chega em quem comentou.',
     }),
   });
 
