@@ -10,17 +10,32 @@ const timeAgo = (iso) => {
   return new Date(iso).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
 };
 
-const Field = (props) => (
-  <input
-    {...props}
-    className="w-full border-b border-black/20 bg-transparent py-2 text-sm text-black placeholder:text-gray-400 focus:border-black focus:outline-none"
-  />
-);
+/**
+ * Seletor de quem está falando. Só aparece para quem abriu com o token: sem
+ * ele não há escolha a fazer — a pessoa é visitante e ponto.
+ */
+const IdentityPicker = () => {
+  const { identity, setIdentity, canBeOwner } = useComments();
+  if (!canBeOwner) return null;
 
-/** Composer compartilhado por thread nova e resposta. Pede o nome na primeira vez. */
+  return (
+    <label className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.15em] text-gray-400">
+      Comentar como
+      <select
+        value={identity}
+        onChange={(e) => setIdentity(e.target.value)}
+        className="rounded-full border border-black/20 bg-white px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.12em] text-black focus:border-black focus:outline-none"
+      >
+        <option value="owner">João Gabriel</option>
+        <option value="client">Visitante</option>
+      </select>
+    </label>
+  );
+};
+
+/** Composer compartilhado por thread nova e resposta. */
 const Composer = ({ placeholder, submitLabel, onSubmit, autoFocus = false }) => {
-  const { authorName, setAuthorName, sending, isOwner } = useComments();
-  const [name, setName] = useState(authorName);
+  const { sending } = useComments();
   const [body, setBody] = useState('');
   const [error, setError] = useState('');
   const areaRef = useRef(null);
@@ -29,23 +44,15 @@ const Composer = ({ placeholder, submitLabel, onSubmit, autoFocus = false }) => 
     if (autoFocus && areaRef.current) areaRef.current.focus();
   }, [autoFocus]);
 
-  const needsName = !authorName && !isOwner;
-
   const submit = async (event) => {
     event.preventDefault();
     setError('');
-    if (needsName && !name.trim()) {
-      setError('Diz seu nome pra eu saber quem comentou.');
-      return;
-    }
     if (!body.trim()) {
       setError('Escreve o comentário antes de enviar.');
       return;
     }
-    const finalName = needsName ? name.trim() : authorName;
-    if (needsName) setAuthorName(name);
     try {
-      await onSubmit(body.trim(), finalName);
+      await onSubmit(body.trim());
       setBody('');
     } catch (err) {
       setError(err.message || 'Não consegui enviar. Tenta de novo.');
@@ -54,14 +61,7 @@ const Composer = ({ placeholder, submitLabel, onSubmit, autoFocus = false }) => 
 
   return (
     <form onSubmit={submit} className="flex flex-col gap-3">
-      {needsName && (
-        <Field
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          placeholder="Seu nome"
-          maxLength={60}
-        />
-      )}
+      <IdentityPicker />
       <textarea
         ref={areaRef}
         value={body}
@@ -172,7 +172,7 @@ const Thread = ({ thread }) => {
             autoFocus
             placeholder="Responder…"
             submitLabel="Responder"
-            onSubmit={(body, name) => reply(thread.id, body, name)}
+            onSubmit={(body) => reply(thread.id, body)}
           />
         </div>
       )}
@@ -183,7 +183,7 @@ const Thread = ({ thread }) => {
 export const CommentsPanel = () => {
   const {
     threads, status, mode, setMode, draft, setDraft,
-    panelOpen, setPanelOpen, createThread, isOwner, authorName,
+    panelOpen, setPanelOpen, createThread, isOwner,
   } = useComments();
 
   const total = threads.reduce((sum, t) => sum + 1 + t.replies.length, 0);
@@ -260,7 +260,7 @@ export const CommentsPanel = () => {
               />
               Comentando como
               <span className="text-black">
-                {isOwner ? 'João Gabriel' : authorName || 'visitante'}
+                {isOwner ? 'João Gabriel' : 'Visitante'}
               </span>
             </p>
           </div>

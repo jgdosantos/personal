@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { CommentsContext } from './context.js';
 
-const NAME_KEY = 'proposta:author-name';
+const IDENTITY_KEY = 'proposta:identity';
 const OWNER_KEY = 'proposta:owner-token';
 const POLL_MS = 20000;
 
@@ -44,24 +44,30 @@ export const CommentsProvider = ({ slug, children }) => {
   const [activeThreadId, setActiveThreadId] = useState(null);
   const [panelOpen, setPanelOpen] = useState(false);
   const [sending, setSending] = useState(false);
-  const [authorName, setAuthorNameState] = useState(() => {
-    if (typeof window === 'undefined') return '';
+  const ownerToken = useMemo(readOwnerToken, []);
+
+  // Quem abriu com o token começa como dono; qualquer outra pessoa é visitante.
+  // Com o token dá para alternar para visitante e testar como o cliente vê.
+  const [identity, setIdentityState] = useState(() => {
+    if (!ownerToken) return 'client';
     try {
-      return window.localStorage.getItem(NAME_KEY) || '';
+      return window.localStorage.getItem(IDENTITY_KEY) === 'client' ? 'client' : 'owner';
     } catch {
-      return '';
+      return 'owner';
     }
   });
 
-  const ownerToken = useMemo(readOwnerToken, []);
-
-  const setAuthorName = useCallback((name) => {
-    const clean = name.trim().slice(0, 60);
-    setAuthorNameState(clean);
+  // Sem token não existe "owner": a escolha na tela decide apenas de qual lado
+  // você fala, nunca se você tem direito a falar como dono.
+  const setIdentity = useCallback((next) => {
+    const value = next === 'owner' && ownerToken ? 'owner' : 'client';
+    setIdentityState(value);
     try {
-      window.localStorage.setItem(NAME_KEY, clean);
+      window.localStorage.setItem(IDENTITY_KEY, value);
     } catch { /* private mode */ }
-  }, []);
+  }, [ownerToken]);
+
+  const isOwner = Boolean(ownerToken) && identity === 'owner';
 
   const refresh = useCallback(async () => {
     try {
@@ -96,8 +102,9 @@ export const CommentsProvider = ({ slug, children }) => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           slug,
-          name: authorName,
-          ownerToken,
+          // O token só viaja quando você escolheu falar como dono — é ele que
+          // o servidor confere para carimbar o papel e rotear a notificação.
+          ownerToken: isOwner ? ownerToken : '',
           ...payload,
         }),
       });
@@ -112,14 +119,11 @@ export const CommentsProvider = ({ slug, children }) => {
     } finally {
       setSending(false);
     }
-  }, [slug, authorName, ownerToken]);
+  }, [slug, ownerToken, isOwner]);
 
-  // `name` chega explícito do Composer: setAuthorName é assíncrono, então no
-  // primeiro comentário o `authorName` do closure ainda está vazio e a API
-  // gravaria "Visitante" no lugar de quem escreveu.
-  const createThread = useCallback(async (body, name) => {
+  const createThread = useCallback(async (body) => {
     if (!draft) return null;
-    const created = await post({ ...draft, body, ...(name ? { name } : {}) });
+    const created = await post({ ...draft, body });
     setDraft(null);
     setMode('browse');
     setActiveThreadId(created.id);
@@ -127,10 +131,7 @@ export const CommentsProvider = ({ slug, children }) => {
     return created;
   }, [draft, post]);
 
-  const reply = useCallback(
-    (parentId, body, name) => post({ parentId, body, ...(name ? { name } : {}) }),
-    [post],
-  );
+  const reply = useCallback((parentId, body) => post({ parentId, body }), [post]);
 
   // Threads são numeradas por ordem de criação — o número do pin é o mesmo
   // que aparece no painel lateral e no e-mail de notificação.
@@ -159,16 +160,17 @@ export const CommentsProvider = ({ slug, children }) => {
     setActiveThreadId,
     panelOpen,
     setPanelOpen,
-    authorName,
-    setAuthorName,
-    isOwner: Boolean(ownerToken),
+    identity,
+    setIdentity,
+    isOwner,
+    canBeOwner: Boolean(ownerToken),
     sending,
     createThread,
     reply,
     refresh,
   }), [
     slug, threads, status, mode, draft, activeThreadId, panelOpen,
-    authorName, setAuthorName, ownerToken, sending, createThread, reply, refresh,
+    identity, setIdentity, isOwner, ownerToken, sending, createThread, reply, refresh,
   ]);
 
   return (
