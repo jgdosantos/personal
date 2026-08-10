@@ -26,8 +26,8 @@ const IdentityPicker = () => {
         onChange={(e) => setIdentity(e.target.value)}
         className="rounded-full border border-black/20 bg-white px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.12em] text-black focus:border-black focus:outline-none"
       >
+        <option value="client">Cliente</option>
         <option value="owner">João Gabriel</option>
-        <option value="client">Visitante</option>
       </select>
     </label>
   );
@@ -260,7 +260,7 @@ export const CommentsPanel = () => {
               />
               Comentando como
               <span className="text-black">
-                {isOwner ? 'João Gabriel' : 'Visitante'}
+                {isOwner ? 'João Gabriel' : 'Cliente'}
               </span>
             </p>
           </div>

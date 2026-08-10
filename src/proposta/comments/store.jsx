@@ -102,6 +102,10 @@ export const CommentsProvider = ({ slug, children }) => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           slug,
+          // O nome do lado cliente é fixo: o seletor tem só duas opções e
+          // ninguém digita nome. Quando é o dono, o servidor ignora isto e
+          // carimba "João Gabriel" a partir do token.
+          name: 'Cliente',
           // O token só viaja quando você escolheu falar como dono — é ele que
           // o servidor confere para carimbar o papel e rotear a notificação.
           ownerToken: isOwner ? ownerToken : '',
