@@ -3,28 +3,45 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 // ============================================
 // BOAS-VINDAS — só na primeira visita
 // ============================================
-// A tela cobre a proposta por ~7s, apresenta o projeto e ensina a única
-// funcionalidade não óbvia da página: comentar num trecho. Depois some e
+// A tela apresenta o projeto e ensina a única funcionalidade não óbvia da
+// página: comentar ancorado num trecho. Fica até a pessoa entrar, e depois
 // nunca mais aparece — a marca fica no localStorage.
 
 const STORAGE_KEY = 'proposta:welcomed';
 
-// Tempo até o auto-dismiss, contado do mount. A entrada escalonada termina em
-// ~1.5s, deixando ~5s de leitura antes de a saída começar.
+// A tela NÃO sai sozinha. Ela explica como comentar na proposta, e um passo a
+// passo que some antes de a pessoa terminar de ler não serve para nada — as
+// duas versões cronometradas (2.9s e depois 6.5s) erraram por isso. Sai no
+// clique do botão ou no Esc.
 //
-// A primeira versão saía em 2.9s e ficou agitada: mal terminava de entrar e já
-// estava indo embora, e ninguém lê três blocos de texto nesse intervalo. O
-// movimento também era rápido demais para um momento que é de acolhimento, não
-// de eficiência — daí as durações mais longas e a curva mais suave abaixo.
-const AUTO_DISMISS_MS = 6500;
+// Pelo mesmo motivo o clique no fundo não fecha: encostar fora do texto e
+// perder a instrução seria fácil demais.
 const EXIT_MS = 700;
-// Sem movimento não há entrada para assistir, mas o texto continua o mesmo:
-// tempo de leitura ainda é necessário.
-const REDUCED_DISMISS_MS = 4500;
 
 // Fallback para navegador com storage bloqueado: pelo menos não repete a
 // boas-vindas a cada remontagem dentro do mesmo carregamento.
 let dismissedThisLoad = false;
+
+// O passo a passo existe porque comentar ancorado não é um gesto que as
+// pessoas conhecem: sem explicar, a proposta vira um PDF que se rola. Cada
+// passo diz uma coisa só, na ordem em que ela acontece.
+const STEPS = [
+  {
+    n: '01',
+    title: 'Comente em qualquer trecho',
+    text: 'Toque em Comentar e clique no ponto da proposta sobre o qual você quer falar. O comentário fica preso ali.',
+  },
+  {
+    n: '02',
+    title: 'Tire dúvidas e peça ajustes',
+    text: 'Escopo, prazo, valor, uma referência que você viu — escreva no próprio item, em vez de solto no WhatsApp.',
+  },
+  {
+    n: '03',
+    title: 'Eu respondo no mesmo lugar',
+    text: 'Você recebe um e-mail quando eu responder, e marca como resolvido o que já estiver acertado.',
+  },
+];
 
 const prefersReducedMotion = () => {
   if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return false;
@@ -108,12 +125,6 @@ const WelcomeOverlay = ({ onDone }) => {
     };
   }, [reduced]);
 
-  // Auto-dismiss.
-  useEffect(() => {
-    const id = setTimeout(dismiss, reduced ? REDUCED_DISMISS_MS : AUTO_DISMISS_MS);
-    return () => clearTimeout(id);
-  }, [dismiss, reduced]);
-
   // Esc: saída sempre disponível pelo teclado.
   useEffect(() => {
     const onKeyDown = (event) => {
@@ -158,9 +169,10 @@ const WelcomeOverlay = ({ onDone }) => {
       role="dialog"
       aria-modal="true"
       aria-labelledby="welcome-title"
-      onClick={dismiss}
       className={[
-        'fixed inset-0 z-[100] flex items-center overflow-hidden bg-black print:hidden',
+        // overflow-y-auto: com o passo a passo o conteúdo passa da altura da
+        // tela em celular deitado, e cortar instrução seria pior que rolar.
+        'fixed inset-0 z-[100] flex items-center overflow-y-auto bg-black py-12 print:hidden',
         reduced ? '' : 'transition-opacity duration-700 ease-out',
         leaving ? 'pointer-events-none opacity-0' : 'opacity-100',
       ].join(' ')}
@@ -213,13 +225,22 @@ const WelcomeOverlay = ({ onDone }) => {
           investimento estão todos aqui, abertos.
         </p>
 
-        <p
+        <ol
           style={reveal(shown, reduced, 760)}
-          className="mt-4 max-w-[52ch] text-base leading-[1.6] text-gray-500"
+          className="mt-10 grid max-w-4xl grid-cols-1 gap-x-10 gap-y-7 border-t border-white/10 pt-8 sm:grid-cols-3 md:mt-12"
         >
-          Se algo não fizer sentido, comente direto no trecho: toque em Comentar, marque o
-          ponto e eu respondo ali mesmo.
-        </p>
+          {STEPS.map((step) => (
+            <li key={step.n}>
+              <span className="block text-xs font-bold uppercase tracking-[0.2em] text-gray-600">
+                {step.n}
+              </span>
+              <h3 className="mt-2.5 text-base font-semibold tracking-tight text-white">
+                {step.title}
+              </h3>
+              <p className="mt-1.5 text-sm leading-[1.6] text-gray-500">{step.text}</p>
+            </li>
+          ))}
+        </ol>
 
         <div
           style={reveal(shown, reduced, 960)}
@@ -229,9 +250,9 @@ const WelcomeOverlay = ({ onDone }) => {
             ref={buttonRef}
             type="button"
             onClick={dismiss}
-            className="inline-flex items-center gap-2.5 rounded-full border border-white bg-white px-8 py-3 text-xs font-bold uppercase tracking-widest text-black transition-colors duration-300 hover:bg-transparent hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-black"
+            className="inline-flex items-center gap-2.5 rounded-full border border-white bg-white px-8 py-3.5 text-xs font-bold uppercase tracking-widest text-black transition-colors duration-300 hover:bg-transparent hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-black"
           >
-            Ver a proposta
+            Clique para acessar a proposta
             <svg
               width="13"
               height="13"
@@ -247,28 +268,9 @@ const WelcomeOverlay = ({ onDone }) => {
               <polyline points="13 6 19 12 13 18" />
             </svg>
           </button>
-          {/* No celular não existe Esc, e "clique" soa errado. */}
-          <span className="text-xs uppercase tracking-[0.18em] text-gray-600">
-            <span className="md:hidden">Toque em qualquer lugar para entrar</span>
-            <span className="hidden md:inline">Clique em qualquer lugar ou pressione Esc</span>
-          </span>
         </div>
       </div>
 
-      {/* Barra de tempo: mostra que a tela sai sozinha, sem exigir ação. */}
-      {!reduced && (
-        <div aria-hidden="true" className="absolute inset-x-0 bottom-0 h-px bg-white/10">
-          <div
-            className="h-full origin-left bg-white/45"
-            style={{
-              transform: `scaleX(${shown ? 1 : 0})`,
-              transitionProperty: 'transform',
-              transitionDuration: `${AUTO_DISMISS_MS}ms`,
-              transitionTimingFunction: 'linear',
-            }}
-          />
-        </div>
-      )}
     </div>
   );
 };

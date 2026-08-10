@@ -102,14 +102,32 @@ const PropostaMarcelo = () => {
                 </a>
               ))}
             </nav>
-            <a
-              href={APPROVE_LINK}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={`flex-shrink-0 rounded-full border border-black bg-black px-4 py-2 text-[10px] font-bold uppercase tracking-widest text-white transition-colors duration-300 hover:bg-white hover:text-black md:px-5 md:text-xs ${focusRing}`}
-            >
-              Aprovar proposta
-            </a>
+            <div className="flex flex-shrink-0 items-center gap-2">
+              {/* No cabeçalho o rótulo encurta para "PDF" abaixo de md: em
+                  375px "Baixar PDF" + "Aprovar proposta" não cabem lado a
+                  lado, e o ícone já carrega o significado. */}
+              <a
+                href={PDF_PATH}
+                download
+                className={`inline-flex items-center gap-1.5 rounded-full border border-black/15 px-3 py-2 text-[10px] font-bold uppercase tracking-widest text-black transition-colors duration-300 hover:border-black hover:bg-black hover:text-white md:px-4 md:text-xs ${focusRing}`}
+              >
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                  <polyline points="7 10 12 15 17 10" />
+                  <line x1="12" y1="15" x2="12" y2="3" />
+                </svg>
+                <span className="md:hidden">PDF</span>
+                <span className="hidden md:inline">Baixar PDF</span>
+              </a>
+              <a
+                href={APPROVE_LINK}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={`rounded-full border border-black bg-black px-4 py-2 text-[10px] font-bold uppercase tracking-widest text-white transition-colors duration-300 hover:bg-white hover:text-black md:px-5 md:text-xs ${focusRing}`}
+              >
+                Aprovar proposta
+              </a>
+            </div>
           </div>
         </header>
 
