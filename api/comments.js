@@ -38,12 +38,34 @@ const escapeHtml = (value) =>
 async function selectComments(slug) {
   const query = new URLSearchParams({
     proposal_slug: `eq.${slug}`,
-    select: 'id,parent_id,anchor_id,rel_x,rel_y,author_name,author_role,body,created_at',
+    select: 'id,parent_id,anchor_id,rel_x,rel_y,author_name,author_role,body,created_at,resolved_at,resolved_by',
     order: 'created_at.asc',
   });
   const res = await fetch(`${SUPABASE_URL}/rest/v1/${TABLE}?${query}`, { headers: restHeaders });
   if (!res.ok) throw new Error(`Supabase select falhou: ${res.status} ${await res.text()}`);
   return res.json();
+}
+
+// O filtro carrega o slug e `parent_id is null` de propósito: assim um id de
+// resposta — ou de outra proposta — não resolve nada, mesmo se alguém montar a
+// requisição na mão.
+async function setResolved({ slug, id, resolved, role }) {
+  const query = new URLSearchParams({
+    id: `eq.${id}`,
+    proposal_slug: `eq.${slug}`,
+    parent_id: 'is.null',
+  });
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${TABLE}?${query}`, {
+    method: 'PATCH',
+    headers: { ...restHeaders, Prefer: 'return=representation' },
+    body: JSON.stringify({
+      resolved_at: resolved ? new Date().toISOString() : null,
+      resolved_by: resolved ? role : null,
+    }),
+  });
+  if (!res.ok) throw new Error(`Supabase patch falhou: ${res.status} ${await res.text()}`);
+  const [updated] = await res.json();
+  return updated || null;
 }
 
 async function insertComment(row) {
@@ -189,7 +211,34 @@ export default async function handler(req, res) {
       return res.status(201).json({ comment: created });
     }
 
-    res.setHeader('Allow', 'GET, POST');
+    if (req.method === 'PATCH') {
+      const payload = typeof req.body === 'string' ? JSON.parse(req.body) : (req.body || {});
+      const slug = String(payload.slug || '').trim();
+      const id = String(payload.id || '').trim();
+
+      if (!slug) return res.status(400).json({ error: 'slug obrigatório' });
+      if (!id) return res.status(400).json({ error: 'id obrigatório' });
+      if (typeof payload.resolved !== 'boolean') {
+        return res.status(400).json({ error: 'resolved deve ser true ou false' });
+      }
+
+      const isOwner = Boolean(OWNER_TOKEN) && payload.ownerToken === OWNER_TOKEN;
+      const updated = await setResolved({
+        slug,
+        id,
+        resolved: payload.resolved,
+        role: isOwner ? 'owner' : 'client',
+      });
+
+      // Nada atualizado = id inexistente, de outra proposta, ou de uma resposta.
+      if (!updated) return res.status(404).json({ error: 'thread não encontrada' });
+
+      // Resolver não dispara e-mail: é gesto de organização, não de conversa, e
+      // notificar cada marcação viraria ruído na caixa dos dois lados.
+      return res.status(200).json({ comment: updated });
+    }
+
+    res.setHeader('Allow', 'GET, POST, PATCH');
     return res.status(405).json({ error: 'método não permitido' });
   } catch (err) {
     console.error('[comments]', err);

@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { MessageSquarePlus, MessageSquare, X, Send } from 'lucide-react';
+import { MessageSquarePlus, MessageSquare, X, Send, Check } from 'lucide-react';
 import { useComments } from './context.js';
 
 const timeAgo = (iso) => {
@@ -122,23 +122,57 @@ const StartButton = ({ onClick, className = '' }) => (
   </button>
 );
 
+/**
+ * Marca a thread como resolvida. Fica fora do <button> que abre a thread —
+ * botão dentro de botão é HTML inválido e o clique vira loteria.
+ */
+const ResolveCheck = ({ resolved, onToggle }) => (
+  <button
+    type="button"
+    onClick={onToggle}
+    role="checkbox"
+    aria-checked={resolved}
+    aria-label={resolved ? 'Reabrir comentário' : 'Marcar como resolvido'}
+    title={resolved ? 'Reabrir' : 'Marcar como resolvido'}
+    className={[
+      'mt-0.5 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full border transition-all duration-200',
+      focusRing,
+      resolved
+        ? 'border-transparent bg-neutral-900 text-white'
+        : 'border-neutral-300 text-transparent hover:border-neutral-900 hover:text-neutral-300',
+    ].join(' ')}
+  >
+    <Check size={13} strokeWidth={2.6} />
+  </button>
+);
+
 const Thread = ({ thread }) => {
-  const { activeThreadId, setActiveThreadId, reply, isOwner } = useComments();
+  const { activeThreadId, setActiveThreadId, reply, isOwner, toggleResolved } = useComments();
   const isActive = thread.id === activeThreadId;
+  const resolved = Boolean(thread.resolvedAt);
 
   return (
     <li
       className={[
-        'mx-3 rounded-2xl px-4 py-3.5 transition-colors duration-200',
+        'mx-3 flex gap-3 rounded-2xl px-4 py-3.5 transition-colors duration-200',
         isActive ? 'bg-neutral-900/[0.045]' : 'hover:bg-neutral-900/[0.025]',
+        resolved ? 'opacity-55' : '',
       ].join(' ')}
     >
+      <ResolveCheck resolved={resolved} onToggle={() => toggleResolved(thread.id, !resolved)} />
+
+      <div className="min-w-0 flex-1">
       <button
         type="button"
         onClick={() => setActiveThreadId(isActive ? null : thread.id)}
         className={`flex w-full items-start gap-3 rounded-xl text-left ${focusRing}`}
       >
-        <span className="mt-0.5 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-neutral-900 text-[11px] font-semibold tabular-nums text-white">
+        <span
+          className={[
+            'mt-0.5 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full text-[11px] font-semibold tabular-nums',
+            resolved ? 'bg-neutral-300 text-white' : 'bg-neutral-900 text-white',
+          ].join(' ')}
+        >
           {thread.number}
         </span>
         <span className="min-w-0 flex-1">
@@ -184,6 +218,7 @@ const Thread = ({ thread }) => {
           />
         </div>
       )}
+      </div>
     </li>
   );
 };
@@ -194,7 +229,9 @@ export const CommentsPanel = () => {
     panelOpen, setPanelOpen, createThread, canBeOwner,
   } = useComments();
 
-  const total = threads.reduce((sum, t) => sum + 1 + t.replies.length, 0);
+  // O contador mostra o que falta tratar, não o volume da conversa: uma
+  // proposta toda resolvida deve marcar zero, não "12 comentários".
+  const open = threads.filter((t) => !t.resolvedAt).length;
 
   // Fecha o painel e entra em modo comentário. Sem isso o painel aberto vira um
   // beco sem saída: ele manda "toque em Comentar", mas a barra flutuante que
@@ -217,7 +254,7 @@ export const CommentsPanel = () => {
             className={`inline-flex h-10 items-center gap-2 rounded-full px-4 text-[13px] font-medium tabular-nums text-neutral-700 transition-colors duration-200 hover:bg-neutral-900/[0.06] ${focusRing}`}
           >
             <MessageSquare size={15} strokeWidth={1.9} />
-            {total > 0 ? `${total}` : 'Comentários'}
+            {open > 0 ? `${open}` : 'Comentários'}
           </button>
           <button
             type="button"

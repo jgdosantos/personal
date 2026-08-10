@@ -21,6 +21,22 @@ globalThis.fetch = async (url, init = {}) => {
     rows.push(row);
     return { ok: true, status: 201, json: async () => [row], text: async () => '' };
   }
+  if (init.method === 'PATCH') {
+    // Reproduz os filtros do PostgREST que a API monta na query string, para
+    // que o teste falhe se algum deles for removido do código.
+    const q = new URL(String(url)).searchParams;
+    const id = (q.get('id') || '').replace('eq.', '');
+    const slug = (q.get('proposal_slug') || '').replace('eq.', '');
+    const rootOnly = q.get('parent_id') === 'is.null';
+    const patch = JSON.parse(init.body);
+    const hit = rows.find((r) => (
+      r.id === id
+      && r.proposal_slug === slug
+      && (!rootOnly || !r.parent_id)
+    ));
+    if (hit) Object.assign(hit, patch);
+    return { ok: true, status: 200, json: async () => (hit ? [hit] : []), text: async () => '' };
+  }
   return { ok: true, status: 200, json: async () => rows, text: async () => '' };
 };
 
@@ -108,6 +124,42 @@ check('GET sem cache', res.headers['Cache-Control'] === 'no-store');
 // 7. Método não suportado
 res = await run({ method: 'DELETE', body: {} });
 check('DELETE = 405', res.statusCode === 405);
+
+// 7b. Resolver / reabrir thread
+res = await run({ method: 'PATCH', body: { slug: 'marcelo', id: 'c1', resolved: true } });
+check('resolve thread (200)', res.statusCode === 200, JSON.stringify(res.payload));
+check('grava resolved_at', Boolean(res.payload?.comment?.resolved_at));
+check('grava quem resolveu', res.payload?.comment?.resolved_by === 'client');
+
+res = await run({
+  method: 'PATCH',
+  body: { slug: 'marcelo', id: 'c1', resolved: true, ownerToken: 'segredo-do-joao' },
+});
+check('dono resolvendo fica como owner', res.payload?.comment?.resolved_by === 'owner');
+
+res = await run({ method: 'PATCH', body: { slug: 'marcelo', id: 'c1', resolved: false } });
+check('reabre thread', res.payload?.comment?.resolved_at === null);
+check('limpa quem resolveu', res.payload?.comment?.resolved_by === null);
+
+// c2 é resposta (parent_id = c1): o filtro parent_id=is.null tem que barrar.
+res = await run({ method: 'PATCH', body: { slug: 'marcelo', id: 'c2', resolved: true } });
+check('resposta não resolve = 404', res.statusCode === 404, JSON.stringify(res.payload));
+
+res = await run({ method: 'PATCH', body: { slug: 'outra-proposta', id: 'c1', resolved: true } });
+check('slug de outra proposta = 404', res.statusCode === 404);
+
+res = await run({ method: 'PATCH', body: { slug: 'marcelo', id: 'c1' } });
+check('resolved não booleano = 400', res.statusCode === 400);
+
+res = await run({ method: 'PATCH', body: { slug: 'marcelo', resolved: true } });
+check('PATCH sem id = 400', res.statusCode === 400);
+
+// Resolver é organização, não conversa: não pode gerar e-mail.
+const mailsAntes = calls.filter((c) => c.url.includes('resend')).length;
+await run({ method: 'PATCH', body: { slug: 'marcelo', id: 'c1', resolved: true } });
+check('resolver não dispara e-mail',
+  calls.filter((c) => c.url.includes('resend')).length === mailsAntes);
+await run({ method: 'PATCH', body: { slug: 'marcelo', id: 'c1', resolved: false } });
 
 // 8. Sem CLIENT_EMAIL configurado, o comentário do cliente ainda notifica o
 // dono — só que sem reply_to, porque não há endereço do autor para apontar.

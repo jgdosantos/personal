@@ -15,6 +15,8 @@ const normalize = (row) => ({
   authorRole: row.author_role,
   body: row.body,
   createdAt: row.created_at,
+  resolvedAt: row.resolved_at || null,
+  resolvedBy: row.resolved_by || null,
 });
 
 // O link de dono é /proposta-marcelo?owner=<token>. Guardamos em localStorage,
@@ -140,6 +142,33 @@ export const CommentsProvider = ({ slug, children }) => {
 
   const reply = useCallback((parentId, body) => post({ parentId, body }), [post]);
 
+  // Otimista: a marcação precisa responder na hora, e o pior caso é o estado
+  // voltar sozinho no próximo refresh se o servidor recusar.
+  const toggleResolved = useCallback(async (id, resolved) => {
+    setComments((prev) => prev.map((c) => (
+      c.id === id
+        ? { ...c, resolvedAt: resolved ? new Date().toISOString() : null }
+        : c
+    )));
+    try {
+      const res = await fetch('/api/comments', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          slug,
+          id,
+          resolved,
+          ownerToken: isOwner ? ownerToken : '',
+        }),
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      setComments((prev) => prev.map((c) => (c.id === id ? normalize(data.comment) : c)));
+    } catch {
+      refresh();
+    }
+  }, [slug, ownerToken, isOwner, refresh]);
+
   // Threads são numeradas por ordem de criação — o número do pin é o mesmo
   // que aparece no painel lateral e no e-mail de notificação.
   const threads = useMemo(() => {
@@ -174,10 +203,12 @@ export const CommentsProvider = ({ slug, children }) => {
     sending,
     createThread,
     reply,
+    toggleResolved,
     refresh,
   }), [
     slug, threads, status, mode, draft, activeThreadId, panelOpen,
-    identity, setIdentity, isOwner, ownerToken, sending, createThread, reply, refresh,
+    identity, setIdentity, isOwner, ownerToken, sending, createThread, reply,
+    toggleResolved, refresh,
   ]);
 
   return (
