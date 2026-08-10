@@ -19,6 +19,43 @@ export const page = {
   autosave: 'Salvo automaticamente. Você pode fechar e voltar por este mesmo link.',
 };
 
+export const fields = {
+  brandName: {
+    label: 'Nome da marca',
+    placeholder: 'Como a clínica se chama',
+    help: 'O nome como aparece para o público, não a razão social.',
+  },
+  instagram: {
+    label: 'Instagram',
+    placeholder: 'nomedamarca',
+    // O cliente cola a URL inteira em vez de digitar o handle. Aceitar as duas
+    // formas e normalizar evita um erro que ele nem entenderia.
+    help: 'Pode colar o link do perfil — eu extraio o @.',
+  },
+  description: {
+    label: 'Descrição breve da marca',
+    placeholder: 'O que a clínica faz, para quem, e o que a diferencia das outras.',
+    help: 'Três ou quatro linhas bastam. É o único campo em que você escreve com suas palavras — é dele que sai o tom do site.',
+  },
+  designSystem: {
+    label: 'Design System',
+    placeholder: 'https://figma.com/file/...',
+    help: 'Se existir um Figma, um Drive ou um Notion com o material visual, cole o link aqui.',
+    invalid: 'O link precisa começar com http:// ou https://',
+  },
+  notes: {
+    label: 'Mais alguma coisa?',
+    placeholder: 'Referências que você gosta, o que não pode faltar, prazos.',
+    help: 'Opcional. Qualquer coisa que ajude e não coube nos campos acima.',
+  },
+};
+
+export const autosave = {
+  saving: 'Salvando…',
+  saved: 'Salvo',
+  error: 'Não consegui salvar — vou tentar de novo',
+};
+
 export const states = {
   loading: 'Abrindo o briefing…',
 
