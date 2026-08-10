@@ -5,7 +5,11 @@ import reactRefresh from 'eslint-plugin-react-refresh'
 import { defineConfig, globalIgnores } from 'eslint/config'
 
 export default defineConfig([
-  globalIgnores(['dist']),
+  // O `**/` importa: no flat config o padrão `dist` casa só o diretório da
+  // raiz, então life-portfolio/dist/assets/*.js — bundle legado minificado —
+  // estava sendo lintado e sozinho respondia por 108 erros. life-portfolio/ é
+  // uma cópia antiga do portfólio, com config própria; não cabe a este repo.
+  globalIgnores(['**/dist', 'life-portfolio']),
   {
     files: ['**/*.{js,jsx}'],
     extends: [

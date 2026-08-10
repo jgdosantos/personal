@@ -10,7 +10,16 @@ const TailedCursor = ({
 }) => {
   const canvasRef = useRef(null);
   const optsRef = useRef(null);
-  optsRef.current = { baseThickness, colors, speedMultiplier, maxAge, enableFade, enableShaderEffect };
+
+  // Sem lista de dependências de propósito: roda a cada render, que é a
+  // intenção original de manter o ref sempre fresco para o loop do canvas.
+  // Escrever no ref durante o render viola react-hooks/refs — o render tem
+  // que ser puro, e o React pode descartá-lo sem nunca o commitar.
+  useEffect(() => {
+    optsRef.current = {
+      baseThickness, colors, speedMultiplier, maxAge, enableFade, enableShaderEffect,
+    };
+  });
 
   useEffect(() => {
     const canvas = canvasRef.current;
