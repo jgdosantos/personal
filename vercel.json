@@ -1,4 +1,15 @@
 {
+    "headers": [
+        {
+            "source": "/proposta-(.*)",
+            "headers": [
+                {
+                    "key": "X-Robots-Tag",
+                    "value": "noindex, nofollow"
+                }
+            ]
+        }
+    ],
     "rewrites": [
         {
             "source": "/((?!api/).*)",
