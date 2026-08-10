@@ -113,7 +113,15 @@ async function notify({ comment, isReply, parentBody }) {
 
   if (!res.ok) {
     console.error('[comments] Resend falhou:', res.status, await res.text());
+    return;
   }
+
+  // Sucesso também precisa deixar rastro: sem isso, "nenhum log" significava
+  // tanto "enviou" quanto "o log se perdeu", e não dava para saber qual.
+  // O id é o mesmo que aparece no painel do Resend, então dá para seguir a
+  // entrega de ponta a ponta.
+  const { id } = await res.json().catch(() => ({}));
+  console.log(`[comments] e-mail aceito pelo Resend id=${id} de=${RESEND_FROM} para=${to}`);
 }
 
 export default async function handler(req, res) {
