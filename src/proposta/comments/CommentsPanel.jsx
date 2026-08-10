@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { MessageSquarePlus, MessageSquare, X, Send, CornerDownRight } from 'lucide-react';
+import { MessageSquarePlus, MessageSquare, X, Send } from 'lucide-react';
 import { useComments } from './context.js';
 
 const timeAgo = (iso) => {
@@ -10,6 +10,11 @@ const timeAgo = (iso) => {
   return new Date(iso).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
 };
 
+// Anel de foco único para todo o painel: discreto no repouso, inequívoco no
+// teclado. Fica num const para não divergir entre botões.
+const focusRing =
+  'focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-neutral-900/25 focus-visible:ring-offset-2 focus-visible:ring-offset-white';
+
 /**
  * Seletor de quem está falando. Só aparece para quem abriu com o token: sem
  * ele não há escolha a fazer — a pessoa é visitante e ponto.
@@ -19,12 +24,12 @@ const IdentityPicker = () => {
   if (!canBeOwner) return null;
 
   return (
-    <label className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.15em] text-gray-400">
+    <label className="flex items-center gap-2.5 text-[12px] text-neutral-500">
       Comentar como
       <select
         value={identity}
         onChange={(e) => setIdentity(e.target.value)}
-        className="rounded-full border border-black/20 bg-white px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.12em] text-black focus:border-black focus:outline-none"
+        className={`h-10 rounded-xl border border-black/[0.07] bg-neutral-100/70 px-3 text-[13px] font-medium text-neutral-900 transition-colors duration-200 hover:bg-neutral-100 ${focusRing}`}
       >
         <option value="client">Cliente</option>
         <option value="owner">João Gabriel</option>
@@ -61,7 +66,6 @@ const Composer = ({ placeholder, submitLabel, onSubmit, autoFocus = false }) => 
 
   return (
     <form onSubmit={submit} className="flex flex-col gap-3">
-      <IdentityPicker />
       <textarea
         ref={areaRef}
         value={body}
@@ -69,15 +73,15 @@ const Composer = ({ placeholder, submitLabel, onSubmit, autoFocus = false }) => 
         placeholder={placeholder}
         rows={3}
         maxLength={2000}
-        className="w-full resize-none border border-black/15 rounded-xl p-3 text-sm leading-relaxed text-black placeholder:text-gray-400 focus:border-black focus:outline-none"
+        className={`w-full resize-none rounded-2xl border border-black/[0.07] bg-neutral-100/60 px-3.5 py-3 text-[14px] leading-[1.55] text-neutral-900 placeholder:text-neutral-400 transition-colors duration-200 focus:border-black/10 focus:bg-white ${focusRing}`}
       />
-      {error && <p className="text-xs font-semibold text-red-600">{error}</p>}
+      {error && <p className="px-1 text-[12.5px] font-medium text-red-600" role="alert">{error}</p>}
       <button
         type="submit"
         disabled={sending}
-        className="self-start inline-flex items-center gap-2 rounded-full border border-black px-5 py-2 text-[10px] font-bold uppercase tracking-widest text-black transition-all duration-300 hover:bg-black hover:text-white disabled:opacity-40"
+        className={`inline-flex h-10 items-center gap-2 self-start rounded-full bg-neutral-900 px-4 text-[13px] font-medium text-white shadow-[0_1px_2px_rgba(0,0,0,0.16)] transition-all duration-200 ease-out hover:bg-neutral-700 active:scale-[0.97] disabled:opacity-35 disabled:hover:bg-neutral-900 ${focusRing}`}
       >
-        <Send size={13} />
+        <Send size={14} strokeWidth={1.9} />
         {sending ? 'Enviando…' : submitLabel}
       </button>
     </form>
@@ -96,10 +100,10 @@ const RoleBadge = ({ role, viewerIsOwner }) => {
   return (
     <span
       className={[
-        'rounded-full px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.12em]',
+        'rounded-full px-2 py-[3px] text-[11px] font-medium leading-none',
         role === 'owner'
-          ? 'bg-black text-white'
-          : 'border border-black/25 text-gray-500',
+          ? 'bg-neutral-900 text-white'
+          : 'bg-neutral-900/[0.06] text-neutral-500',
       ].join(' ')}
     >
       {label}
@@ -111,9 +115,9 @@ const StartButton = ({ onClick, className = '' }) => (
   <button
     type="button"
     onClick={onClick}
-    className={`inline-flex items-center gap-2 rounded-full border border-black bg-black px-5 py-2.5 text-[10px] font-bold uppercase tracking-widest text-white transition-all duration-300 hover:bg-white hover:text-black ${className}`}
+    className={`inline-flex h-11 items-center gap-2 rounded-full bg-neutral-900 px-5 text-[13px] font-medium text-white shadow-[0_1px_2px_rgba(0,0,0,0.16),0_8px_24px_-12px_rgba(0,0,0,0.5)] transition-all duration-200 ease-out hover:bg-neutral-700 active:scale-[0.97] ${focusRing} ${className}`}
   >
-    <MessageSquarePlus size={14} />
+    <MessageSquarePlus size={15} strokeWidth={1.9} />
     Comentar num trecho
   </button>
 );
@@ -123,51 +127,55 @@ const Thread = ({ thread }) => {
   const isActive = thread.id === activeThreadId;
 
   return (
-    <li className={`border-b border-black/10 px-6 py-5 transition-colors ${isActive ? 'bg-black/[0.03]' : ''}`}>
+    <li
+      className={[
+        'mx-3 rounded-2xl px-4 py-3.5 transition-colors duration-200',
+        isActive ? 'bg-neutral-900/[0.045]' : 'hover:bg-neutral-900/[0.025]',
+      ].join(' ')}
+    >
       <button
         type="button"
         onClick={() => setActiveThreadId(isActive ? null : thread.id)}
-        className="flex w-full items-start gap-3 text-left"
+        className={`flex w-full items-start gap-3 rounded-xl text-left ${focusRing}`}
       >
-        <span className="mt-0.5 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-black text-[10px] font-black tabular-nums text-white">
+        <span className="mt-0.5 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-neutral-900 text-[11px] font-semibold tabular-nums text-white">
           {thread.number}
         </span>
         <span className="min-w-0 flex-1">
-          <span className="flex flex-wrap items-center gap-2">
-            <span className="text-[11px] font-bold uppercase tracking-[0.15em] text-black">
+          <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
+            <span className="text-[13px] font-semibold tracking-[-0.01em] text-neutral-900">
               {thread.authorName}
             </span>
             <RoleBadge role={thread.authorRole} viewerIsOwner={isOwner} />
-            <span className="text-[10px] uppercase tracking-widest text-gray-400">
+            <span className="text-[12px] text-neutral-400">
               {timeAgo(thread.createdAt)}
             </span>
           </span>
-          <span className="mt-1 block text-sm leading-relaxed text-gray-700">{thread.body}</span>
+          <span className="mt-1 block text-[14px] leading-[1.55] text-neutral-600">{thread.body}</span>
         </span>
       </button>
 
       {thread.replies.length > 0 && (
-        <ul className="mt-4 space-y-3 border-l border-black/15 pl-4 ml-3">
+        <ul className="mt-3 ml-9 space-y-2">
           {thread.replies.map((r) => (
-            <li key={r.id}>
-              <div className="flex flex-wrap items-center gap-2">
-                <CornerDownRight size={12} className="text-gray-400" />
-                <span className="text-[11px] font-bold uppercase tracking-[0.15em] text-black">
+            <li key={r.id} className="rounded-2xl rounded-tl-md bg-neutral-900/[0.045] px-3.5 py-2.5">
+              <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                <span className="text-[12.5px] font-semibold tracking-[-0.01em] text-neutral-900">
                   {r.authorName}
                 </span>
                 <RoleBadge role={r.authorRole} viewerIsOwner={isOwner} />
-                <span className="text-[10px] uppercase tracking-widest text-gray-400">
+                <span className="text-[12px] text-neutral-400">
                   {timeAgo(r.createdAt)}
                 </span>
               </div>
-              <p className="mt-1 pl-5 text-sm leading-relaxed text-gray-700">{r.body}</p>
+              <p className="mt-1 text-[14px] leading-[1.55] text-neutral-600">{r.body}</p>
             </li>
           ))}
         </ul>
       )}
 
       {isActive && (
-        <div className="mt-5 ml-3 border-l border-black/15 pl-4">
+        <div className="mt-4 ml-9">
           <Composer
             autoFocus
             placeholder="Responder…"
@@ -183,7 +191,7 @@ const Thread = ({ thread }) => {
 export const CommentsPanel = () => {
   const {
     threads, status, mode, setMode, draft, setDraft,
-    panelOpen, setPanelOpen, createThread, isOwner,
+    panelOpen, setPanelOpen, createThread, canBeOwner,
   } = useComments();
 
   const total = threads.reduce((sum, t) => sum + 1 + t.replies.length, 0);
@@ -202,13 +210,13 @@ export const CommentsPanel = () => {
       {/* Barra flutuante. Vive numa bandeja branca para não sumir nas seções
           pretas da proposta. */}
       {!panelOpen && (
-        <div className="fixed bottom-5 right-5 z-[70] flex items-center gap-1 rounded-full border border-black/10 bg-white/90 p-1 shadow-[0_6px_24px_rgba(0,0,0,0.18)] backdrop-blur-sm print:hidden">
+        <div className="fixed bottom-5 right-5 z-[70] flex items-center gap-1 rounded-full border border-black/[0.06] bg-white/75 p-1.5 shadow-[0_1px_2px_rgba(0,0,0,0.08),0_12px_32px_-8px_rgba(0,0,0,0.24)] backdrop-blur-xl print:hidden">
           <button
             type="button"
             onClick={() => setPanelOpen(true)}
-            className="inline-flex items-center gap-2 rounded-full px-4 py-2.5 text-[10px] font-bold uppercase tracking-widest text-black transition-colors duration-300 hover:bg-black/[0.06]"
+            className={`inline-flex h-10 items-center gap-2 rounded-full px-4 text-[13px] font-medium tabular-nums text-neutral-700 transition-colors duration-200 hover:bg-neutral-900/[0.06] ${focusRing}`}
           >
-            <MessageSquare size={14} />
+            <MessageSquare size={15} strokeWidth={1.9} />
             {total > 0 ? `${total}` : 'Comentários'}
           </button>
           <button
@@ -219,13 +227,14 @@ export const CommentsPanel = () => {
               setDraft(null);
             }}
             className={[
-              'inline-flex items-center gap-2 rounded-full border px-5 py-2.5 text-[10px] font-bold uppercase tracking-widest transition-all duration-300',
+              'inline-flex h-10 items-center gap-2 rounded-full px-4 text-[13px] font-medium transition-all duration-200 ease-out active:scale-[0.97]',
               mode === 'comment'
-                ? 'border-black bg-white text-black hover:bg-black/[0.06]'
-                : 'border-black bg-black text-white hover:bg-white hover:text-black',
+                ? 'bg-neutral-900/[0.06] text-neutral-700 hover:bg-neutral-900/[0.1]'
+                : 'bg-neutral-900 text-white shadow-[0_1px_2px_rgba(0,0,0,0.18)] hover:bg-neutral-700',
+              focusRing,
             ].join(' ')}
           >
-            {mode === 'comment' ? <X size={14} /> : <MessageSquarePlus size={14} />}
+            {mode === 'comment' ? <X size={15} strokeWidth={1.9} /> : <MessageSquarePlus size={15} strokeWidth={1.9} />}
             {mode === 'comment' ? 'Cancelar' : 'Comentar'}
           </button>
         </div>
@@ -233,9 +242,9 @@ export const CommentsPanel = () => {
 
       {/* Faixa de instrução no modo comentário */}
       {mode === 'comment' && !draft && !panelOpen && (
-        <div className="fixed bottom-20 left-1/2 z-[70] -translate-x-1/2 rounded-full bg-black px-5 py-2.5 text-center shadow-[0_4px_20px_rgba(0,0,0,0.25)] print:hidden">
-          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-white">
-            Clique num trecho <span className="text-gray-400">destacado</span> para comentar ali
+        <div className="fixed bottom-20 left-1/2 z-[70] -translate-x-1/2 rounded-full bg-neutral-900/90 px-4 py-2.5 text-center shadow-[0_8px_28px_-8px_rgba(0,0,0,0.45)] backdrop-blur-xl print:hidden">
+          <p className="text-[13px] font-medium tracking-[-0.005em] text-white">
+            Clique num trecho <span className="text-white/55">destacado</span> para comentar ali
           </p>
         </div>
       )}
@@ -243,26 +252,36 @@ export const CommentsPanel = () => {
       {/* Painel lateral */}
       <aside
         className={[
-          'fixed right-0 top-0 z-[80] flex h-full w-full flex-col border-l-2 border-black bg-white transition-transform duration-300 sm:w-[420px] print:hidden',
-          panelOpen ? 'translate-x-0' : 'translate-x-full',
+          'fixed right-0 top-0 z-[80] flex h-full w-full flex-col overflow-hidden border-l border-black/[0.07] bg-white/85 backdrop-blur-2xl',
+          'transition-[transform,box-shadow] duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]',
+          'sm:w-[420px] sm:rounded-l-3xl print:hidden',
+          panelOpen
+            ? 'translate-x-0 shadow-[-32px_0_64px_-32px_rgba(0,0,0,0.28)]'
+            : 'translate-x-full shadow-none',
         ].join(' ')}
       >
-        <header className="flex items-center justify-between border-b-2 border-black px-6 py-5">
-          <div>
-            <h2 className="text-xl font-black uppercase tracking-tighter text-black">
+        <header className="flex items-start justify-between gap-3 border-b border-black/[0.06] px-5 py-4">
+          <div className="min-w-0">
+            <h2 className="text-[17px] font-semibold tracking-[-0.02em] text-neutral-900">
               Comentários
             </h2>
-            {/* Sem isso dá para comentar a sessão inteira como visitante sem
-                perceber que o link abriu sem o ?owner=. */}
-            <p className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.2em] text-gray-400">
-              <span
-                className={`inline-block h-1.5 w-1.5 rounded-full ${isOwner ? 'bg-black' : 'border border-black/40'}`}
-              />
-              Comentando como
-              <span className="text-black">
-                {isOwner ? 'João Gabriel' : 'Cliente'}
-              </span>
-            </p>
+            {/* O seletor mora aqui, e não dentro do composer, para estar sempre
+                alcançável: no composer só aparecia depois de abrir um rascunho,
+                então trocar de lado exigia começar um comentário antes.
+                Para quem não tem o token não há escolha — só o indicador, que
+                evita comentar a sessão inteira como cliente sem perceber que o
+                link abriu sem o ?owner=. */}
+            {canBeOwner ? (
+              <div className="mt-1.5">
+                <IdentityPicker />
+              </div>
+            ) : (
+              <p className="mt-0.5 flex items-center gap-1.5 text-[12px] text-neutral-400">
+                <span className="inline-block h-1.5 w-1.5 flex-shrink-0 rounded-full border border-neutral-300" />
+                Comentando como
+                <span className="font-medium text-neutral-600">Cliente</span>
+              </p>
+            )}
           </div>
           <button
             type="button"
@@ -272,16 +291,16 @@ export const CommentsPanel = () => {
               setMode('browse');
             }}
             aria-label="Fechar painel"
-            className="rounded-full border border-black/20 p-2 text-black transition-colors hover:bg-black hover:text-white"
+            className={`-mr-1 inline-flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full text-neutral-500 transition-colors duration-200 hover:bg-neutral-900/[0.06] hover:text-neutral-900 ${focusRing}`}
           >
-            <X size={16} />
+            <X size={17} strokeWidth={1.9} />
           </button>
         </header>
 
-        <div className="flex-1 overflow-y-auto">
+        <div className="flex-1 overflow-y-auto overscroll-contain py-2">
           {draft && (
-            <div className="border-b-2 border-black bg-black/[0.03] px-6 py-5">
-              <p className="mb-3 text-[10px] font-bold uppercase tracking-[0.2em] text-gray-400">
+            <div className="mx-3 mb-2 rounded-2xl bg-neutral-900/[0.035] p-4 ring-1 ring-inset ring-black/[0.05]">
+              <p className="mb-3 text-[11px] font-medium uppercase tracking-[0.08em] text-neutral-400">
                 Novo comentário neste trecho
               </p>
               <Composer
@@ -294,14 +313,17 @@ export const CommentsPanel = () => {
           )}
 
           {status === 'error' && (
-            <p className="px-6 py-8 text-sm text-gray-500">
+            <p className="px-7 py-8 text-[14px] leading-[1.55] text-neutral-500">
               Não consegui carregar os comentários agora. Recarregue a página.
             </p>
           )}
 
           {status === 'ready' && threads.length === 0 && !draft && (
-            <div className="px-6 py-10">
-              <p className="text-sm leading-relaxed text-gray-500">
+            <div className="px-7 py-10">
+              <span className="mb-4 flex h-11 w-11 items-center justify-center rounded-2xl bg-neutral-900/[0.05] text-neutral-400">
+                <MessageSquare size={19} strokeWidth={1.7} />
+              </span>
+              <p className="text-[14px] leading-[1.6] text-neutral-500">
                 Nenhum comentário ainda. Toque no botão abaixo e depois clique no trecho da
                 proposta sobre o qual você quer falar — o comentário fica ancorado ali.
               </p>
@@ -309,14 +331,14 @@ export const CommentsPanel = () => {
             </div>
           )}
 
-          <ul>
+          <ul className="space-y-0.5">
             {threads.map((thread) => (
               <Thread key={thread.id} thread={thread} />
             ))}
           </ul>
 
           {status === 'ready' && threads.length > 0 && !draft && (
-            <div className="px-6 py-8">
+            <div className="mt-2 border-t border-black/[0.06] px-7 py-6">
               <StartButton onClick={startCommenting} />
             </div>
           )}

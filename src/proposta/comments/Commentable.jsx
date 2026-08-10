@@ -10,13 +10,16 @@ const Pin = ({ label, active, draft, relX, relY, onClick, title }) => (
     style={{ left: `${relX * 100}%`, top: `${relY * 100}%` }}
     className={[
       'absolute z-30 -translate-x-1/2 -translate-y-1/2 flex items-center justify-center',
-      'h-7 w-7 rounded-full border-2 text-[11px] font-black tabular-nums',
-      'transition-transform duration-200 hover:scale-110',
+      'h-7 w-7 rounded-full border text-[11px] font-semibold tabular-nums',
+      // Alvo de toque de 43px sem inchar o marcador: a área cresce, o círculo não.
+      'after:absolute after:-inset-2 after:content-[""]',
+      'transition-[transform,box-shadow,background-color] duration-200 ease-out hover:scale-110 active:scale-95',
+      'focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-neutral-900/25 focus-visible:ring-offset-2 focus-visible:ring-offset-white',
       draft
-        ? 'bg-white text-black border-black border-dashed animate-pulse'
+        ? 'border-dashed border-neutral-900/45 bg-white text-neutral-900 shadow-[0_2px_8px_-2px_rgba(0,0,0,0.2)] animate-pulse'
         : active
-          ? 'bg-white text-black border-black shadow-[0_0_0_4px_rgba(0,0,0,0.12)]'
-          : 'bg-black text-white border-white shadow-[0_2px_10px_rgba(0,0,0,0.25)]',
+          ? 'border-neutral-900/80 bg-white text-neutral-900 shadow-[0_0_0_5px_rgba(0,0,0,0.07),0_2px_8px_-2px_rgba(0,0,0,0.25)]'
+          : 'border-white/70 bg-neutral-900 text-white shadow-[0_2px_8px_-1px_rgba(0,0,0,0.3)]',
     ].join(' ')}
   >
     {label}
@@ -66,7 +69,9 @@ export const Commentable = ({ id, children, className = '' }) => {
         'relative',
         // Em modo comentário o contorno precisa ser óbvio: é ele que diz quais
         // trechos aceitam clique. Sutil demais e o usuário clica no vazio.
-        commenting ? 'cursor-crosshair rounded-lg outline-dashed outline-2 outline-offset-4 outline-black/40 hover:outline-black hover:bg-black/[0.04]' : '',
+        commenting
+          ? 'cursor-crosshair rounded-2xl outline-dashed outline-[1.5px] outline-offset-[6px] outline-neutral-900/20 transition-[outline-color,background-color] duration-200 ease-out hover:bg-neutral-900/[0.025] hover:outline-neutral-900/55'
+          : '',
         className,
       ].join(' ')}
     >

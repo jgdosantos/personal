@@ -17,20 +17,23 @@ const normalize = (row) => ({
   createdAt: row.created_at,
 });
 
-// The owner link is /proposta-marcelo?owner=<token>. We stash it in
-// sessionStorage so the token survives in-page navigation without living in
-// the URL for the rest of the session.
+// O link de dono é /proposta-marcelo?owner=<token>. Guardamos em localStorage,
+// não sessionStorage: com sessionStorage o token morria ao fechar a aba, e o
+// dono voltava a ser tratado como cliente — sem o seletor de identidade — toda
+// vez que abrisse a proposta por um link normal.
 const readOwnerToken = () => {
   if (typeof window === 'undefined') return '';
   const fromUrl = new URLSearchParams(window.location.search).get('owner');
   if (fromUrl) {
     try {
-      window.sessionStorage.setItem(OWNER_KEY, fromUrl);
-    } catch { /* private mode */ }
+      window.localStorage.setItem(OWNER_KEY, fromUrl);
+    } catch { /* modo privado */ }
     return fromUrl;
   }
   try {
-    return window.sessionStorage.getItem(OWNER_KEY) || '';
+    return window.localStorage.getItem(OWNER_KEY)
+      || window.sessionStorage.getItem(OWNER_KEY) // sessões abertas antes da troca
+      || '';
   } catch {
     return '';
   }
