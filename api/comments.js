@@ -6,14 +6,19 @@
 // Sem SDKs: fala PostgREST (Supabase) e Resend por fetch, para não adicionar
 // dependências a um projeto que hoje é só Vite + React.
 
-const SUPABASE_URL = process.env.SUPABASE_URL;
-const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
-const RESEND_API_KEY = process.env.RESEND_API_KEY;
-const RESEND_FROM = process.env.RESEND_FROM;
-const OWNER_EMAIL = process.env.OWNER_EMAIL;
-const CLIENT_EMAIL = process.env.CLIENT_EMAIL;
-const OWNER_TOKEN = process.env.OWNER_TOKEN;
-const PROPOSAL_URL = process.env.PROPOSAL_URL;
+// Colar valor no painel da Vercel arrasta espaço e quebra de linha invisíveis
+// junto — e um "\n" dentro de um header derruba o fetch com
+// `Headers.append: invalid header value`. Toda variável entra higienizada.
+const env = (name) => (process.env[name] || '').trim();
+
+const SUPABASE_URL = env('SUPABASE_URL').replace(/\/+$/, '');
+const SERVICE_KEY = env('SUPABASE_SERVICE_ROLE_KEY');
+const RESEND_API_KEY = env('RESEND_API_KEY');
+const RESEND_FROM = env('RESEND_FROM');
+const OWNER_EMAIL = env('OWNER_EMAIL');
+const CLIENT_EMAIL = env('CLIENT_EMAIL');
+const OWNER_TOKEN = env('OWNER_TOKEN');
+const PROPOSAL_URL = env('PROPOSAL_URL');
 
 const TABLE = 'proposal_comments';
 const MAX_BODY = 2000;

@@ -11,7 +11,7 @@ const calls = [];
 let rows = [];
 
 globalThis.fetch = async (url, init = {}) => {
-  calls.push({ url: String(url), method: init.method || 'GET', body: init.body });
+  calls.push({ url: String(url), method: init.method || 'GET', body: init.body, headers: init.headers });
 
   if (String(url).includes('api.resend.com')) {
     return { ok: true, status: 200, json: async () => ({ id: 'email_1' }), text: async () => '' };
@@ -128,6 +128,45 @@ check('DELETE = 405', res.statusCode === 405);
   check('sem CLIENT_EMAIL, ainda notifica o dono', m.to[0] === 'joao@exemplo.com', JSON.stringify(m.to));
   check('sem CLIENT_EMAIL, reply_to omitido', m.reply_to === undefined, JSON.stringify(m.reply_to));
   process.env.CLIENT_EMAIL = saved;
+}
+
+// 9. Variável colada com quebra de linha (caso real: o painel da Vercel
+// arrastou "\n\n" junto da service role key e o fetch morria com
+// "Headers.append: invalid header value").
+{
+  const saved = {
+    key: process.env.SUPABASE_SERVICE_ROLE_KEY,
+    url: process.env.SUPABASE_URL,
+    token: process.env.OWNER_TOKEN,
+  };
+  process.env.SUPABASE_SERVICE_ROLE_KEY = '\n\nservice-key\n';
+  process.env.SUPABASE_URL = ' https://fake.supabase.co/ ';
+  process.env.OWNER_TOKEN = '  segredo-do-joao\n';
+  const { default: dirtyHandler } = await import(
+    new URL(`../api/comments.js?dirty-env`, import.meta.url)
+  );
+
+  const fresh = mkRes();
+  await dirtyHandler({ method: 'GET', query: { slug: 'marcelo' } }, fresh);
+  const supaCall = calls.filter((c) => c.url.includes('supabase')).at(-1);
+  check('GET funciona com env sujo', fresh.statusCode === 200, JSON.stringify(fresh.payload));
+  check('Authorization sem quebra de linha', supaCall.headers.Authorization === 'Bearer service-key',
+    JSON.stringify(supaCall.headers.Authorization));
+  check('URL sem espaço nem barra final', supaCall.url.startsWith('https://fake.supabase.co/rest/v1/'),
+    supaCall.url);
+
+  // O token sujo ainda precisa reconhecer o dono.
+  const fresh2 = mkRes();
+  await dirtyHandler({
+    method: 'POST',
+    body: { slug: 'marcelo', parentId: 'c1', ownerToken: 'segredo-do-joao', body: 'com env sujo' },
+  }, fresh2);
+  check('OWNER_TOKEN sujo ainda autentica o dono', fresh2.payload?.comment?.author_role === 'owner',
+    JSON.stringify(fresh2.payload));
+
+  Object.assign(process.env, {
+    SUPABASE_SERVICE_ROLE_KEY: saved.key, SUPABASE_URL: saved.url, OWNER_TOKEN: saved.token,
+  });
 }
 
 console.log(failures === 0 ? '\nTODOS OS TESTES PASSARAM' : `\n${failures} FALHA(S)`);
