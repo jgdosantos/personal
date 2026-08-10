@@ -35,13 +35,41 @@ const escapeHtml = (value) =>
     { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]
   ));
 
-async function selectComments(slug) {
+const BASE_COLUMNS = 'id,parent_id,anchor_id,rel_x,rel_y,author_name,author_role,body,created_at';
+const RESOLVED_COLUMNS = 'resolved_at,resolved_by';
+
+// Deploy e migração não acontecem no mesmo instante. Pedir uma coluna que ainda
+// não existe faz o PostgREST devolver 400, e o painel inteiro morria em 500 até
+// alguém rodar o SQL. Agora o código detecta a ausência, degrada para o
+// conjunto antigo e volta sozinho quando a migração roda.
+let hasResolvedColumns = true;
+
+const fetchComments = (slug, select) => {
   const query = new URLSearchParams({
     proposal_slug: `eq.${slug}`,
-    select: 'id,parent_id,anchor_id,rel_x,rel_y,author_name,author_role,body,created_at,resolved_at,resolved_by',
+    select,
     order: 'created_at.asc',
   });
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/${TABLE}?${query}`, { headers: restHeaders });
+  return fetch(`${SUPABASE_URL}/rest/v1/${TABLE}?${query}`, { headers: restHeaders });
+};
+
+async function selectComments(slug) {
+  let res = await fetchComments(
+    slug,
+    hasResolvedColumns ? `${BASE_COLUMNS},${RESOLVED_COLUMNS}` : BASE_COLUMNS,
+  );
+
+  if (!res.ok && hasResolvedColumns) {
+    const detail = await res.text();
+    if (detail.includes('resolved_at') || detail.includes('resolved_by')) {
+      console.warn('[comments] colunas de resolução ausentes — rode supabase/proposal_comments_resolved.sql');
+      hasResolvedColumns = false;
+      res = await fetchComments(slug, BASE_COLUMNS);
+    } else {
+      throw new Error(`Supabase select falhou: ${res.status} ${detail}`);
+    }
+  }
+
   if (!res.ok) throw new Error(`Supabase select falhou: ${res.status} ${await res.text()}`);
   return res.json();
 }
@@ -63,7 +91,15 @@ async function setResolved({ slug, id, resolved, role }) {
       resolved_by: resolved ? role : null,
     }),
   });
-  if (!res.ok) throw new Error(`Supabase patch falhou: ${res.status} ${await res.text()}`);
+  if (!res.ok) {
+    const detail = await res.text();
+    if (detail.includes('resolved_at') || detail.includes('resolved_by')) {
+      const err = new Error('coluna de resolução ausente');
+      err.needsMigration = true;
+      throw err;
+    }
+    throw new Error(`Supabase patch falhou: ${res.status} ${detail}`);
+  }
   const [updated] = await res.json();
   return updated || null;
 }
@@ -223,12 +259,24 @@ export default async function handler(req, res) {
       }
 
       const isOwner = Boolean(OWNER_TOKEN) && payload.ownerToken === OWNER_TOKEN;
-      const updated = await setResolved({
-        slug,
-        id,
-        resolved: payload.resolved,
-        role: isOwner ? 'owner' : 'client',
-      });
+      let updated;
+      try {
+        updated = await setResolved({
+          slug,
+          id,
+          resolved: payload.resolved,
+          role: isOwner ? 'owner' : 'client',
+        });
+      } catch (err) {
+        // Erro de configuração, não do pedido: dizer isso em vez de "erro
+        // interno" economiza a investigação inteira.
+        if (err.needsMigration) {
+          return res.status(503).json({
+            error: 'resolver ainda não está disponível: falta rodar a migração proposal_comments_resolved.sql',
+          });
+        }
+        throw err;
+      }
 
       // Nada atualizado = id inexistente, de outra proposta, ou de uma resposta.
       if (!updated) return res.status(404).json({ error: 'thread não encontrada' });
