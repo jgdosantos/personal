@@ -494,14 +494,41 @@ const App = () => {
     <div className="min-h-screen bg-white">
       {/* Responsive Header */}
       <header className="fixed top-0 left-0 w-full z-50 px-6 py-4 md:px-8 md:py-8 flex justify-between items-center bg-white/80 backdrop-blur-sm md:bg-transparent">
-        {/* Left Spacer - can be used for a logo later */}
-        <div className="flex-1"></div>
+        {/* Brand mark. The video is the same asset the About section plays, so
+            the browser serves the second instance straight from cache. */}
+        <div className="flex-1 flex justify-start">
+          <a href="#" className="flex items-center gap-1.5 md:gap-3" aria-label={staticData.name}>
+            <span className="text-black text-base md:text-xl font-black tracking-tighter leading-none">
+              JG
+            </span>
+            <span className="hidden md:inline text-black/20 text-xl font-light leading-none select-none" aria-hidden="true">
+              |
+            </span>
+            <video
+              autoPlay
+              loop
+              muted
+              playsInline
+              aria-hidden="true"
+              className="w-7 h-7 md:w-10 md:h-10 object-contain -my-1"
+            >
+              <source
+                src={`${import.meta.env.BASE_URL}memoji.mov`}
+                type='video/quicktime; codecs="hvc1"'
+              />
+              <source
+                src={`${import.meta.env.BASE_URL}memoji.webm`}
+                type="video/webm"
+              />
+            </video>
+          </a>
+        </div>
 
         {/* Center - Language Toggle */}
         <div className="flex-1 flex justify-center">
           <button
             onClick={toggleLanguage}
-            className="text-black px-2 md:px-4 py-1.5 rounded-full text-xs md:text-sm font-bold tracking-wider hover:bg-gray-100 transition-colors uppercase flex items-center gap-1"
+            className="text-black px-1.5 md:px-4 py-1.5 rounded-full text-xs md:text-sm font-bold tracking-wider hover:bg-gray-100 transition-colors uppercase flex items-center gap-1"
             aria-label="Change Language"
           >
             <span className={language === 'PT' ? 'opacity-100' : 'opacity-40'}>PT</span>
@@ -511,7 +538,7 @@ const App = () => {
         </div>
 
         {/* Right - Navigation Menu */}
-        <nav className="flex-1 flex justify-end gap-3 md:gap-8">
+        <nav className="flex-1 flex justify-end gap-2.5 md:gap-8">
           <a
             href="#about"
             className="text-black text-[10px] md:text-base font-medium tracking-wide md:tracking-wider hover:text-gray-600 transition-colors uppercase whitespace-nowrap"
