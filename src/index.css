@@ -250,22 +250,37 @@ p {
 
 /* Work carousel — native scroll without the visible scrollbar */
 .work-track {
-  /* Single source of truth for the track inset: it has to be both the padding
-     and the scroll-padding, otherwise scroll-snap aligns cards to the raw
-     scrollport edge and the browser jumps past the padding on load. */
-  --work-inset: 1.5rem;
+  /* Card width lives here so the inset can be derived from it. The inset is
+     half the leftover room, which is what lets the first and last card reach
+     the centre of the scrollport — without it they could never snap there. */
+  --work-card: 82vw;
+  --work-inset: calc(50% - var(--work-card) / 2);
   padding-left: var(--work-inset);
   padding-right: var(--work-inset);
-  scroll-padding-left: var(--work-inset);
+  /* Symmetric, so the snapport centre stays the scrollport centre. */
+  scroll-padding-inline: var(--work-inset);
   scrollbar-width: none;
   -ms-overflow-style: none;
 }
 
-/* Align the first card with the max-w-6xl (72rem) container on wide screens */
+.work-card {
+  width: var(--work-card);
+}
+
+@media (min-width: 640px) {
+  .work-track { --work-card: 64vw; }
+}
+
+@media (min-width: 768px) {
+  .work-track { --work-card: 52vw; }
+}
+
 @media (min-width: 1024px) {
-  .work-track {
-    --work-inset: max(1.5rem, calc((100vw - 72rem) / 2 + 1.5rem));
-  }
+  .work-track { --work-card: 44vw; }
+}
+
+@media (min-width: 1280px) {
+  .work-track { --work-card: 600px; }
 }
 
 .work-track::-webkit-scrollbar {

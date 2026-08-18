@@ -383,7 +383,7 @@ const WorkSection = ({ t }) => {
     <section id="work" className="bg-white py-20 md:py-32 border-t border-gray-100">
       <div className="max-w-6xl mx-auto px-6">
         <AnimatedSection>
-          <div className="flex items-end justify-between gap-6 mb-10 md:mb-16">
+          <div className="flex flex-col items-center text-center gap-8 mb-10 md:mb-16">
             <div>
               <h2 className="text-4xl md:text-6xl font-black text-black tracking-tighter uppercase">
                 {t.work.title}
@@ -393,7 +393,7 @@ const WorkSection = ({ t }) => {
               </p>
             </div>
 
-            <div className="hidden md:flex items-center gap-3 shrink-0">
+            <div className="hidden md:flex items-center gap-3">
               <button
                 type="button"
                 onClick={() => scrollByCard(-1)}
@@ -417,7 +417,7 @@ const WorkSection = ({ t }) => {
         </AnimatedSection>
       </div>
 
-      {/* Full-bleed track so the next card peeks past the container edge */}
+      {/* Full-bleed track: cards snap to the centre, neighbours peek on both sides */}
       <div
         ref={trackRef}
         onScroll={syncProgress}
@@ -435,7 +435,7 @@ const WorkSection = ({ t }) => {
             href={project.url}
             target="_blank"
             rel="noopener noreferrer"
-            className="group shrink-0 snap-start w-[82vw] sm:w-[64vw] md:w-[52vw] lg:w-[44vw] xl:w-[600px]"
+            className="work-card group shrink-0 snap-center"
           >
             <BrowserMockup
               domain={project.domain}
@@ -462,7 +462,7 @@ const WorkSection = ({ t }) => {
       </div>
 
       {/* Progress bar */}
-      <div className="max-w-6xl mx-auto px-6 mt-8 md:mt-12">
+      <div className="max-w-sm mx-auto px-6 mt-10 md:mt-14">
         <div className="h-px w-full bg-black/10 relative overflow-hidden">
           <div
             className="absolute top-0 h-full bg-black"
