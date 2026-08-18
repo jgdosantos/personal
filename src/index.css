@@ -247,3 +247,36 @@ p {
 .stagger-8 {
   animation-delay: 0.8s;
 }
+
+/* Work carousel — native scroll without the visible scrollbar */
+.work-track {
+  /* Single source of truth for the track inset: it has to be both the padding
+     and the scroll-padding, otherwise scroll-snap aligns cards to the raw
+     scrollport edge and the browser jumps past the padding on load. */
+  --work-inset: 1.5rem;
+  padding-left: var(--work-inset);
+  padding-right: var(--work-inset);
+  scroll-padding-left: var(--work-inset);
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+/* Align the first card with the max-w-6xl (72rem) container on wide screens */
+@media (min-width: 1024px) {
+  .work-track {
+    --work-inset: max(1.5rem, calc((100vw - 72rem) / 2 + 1.5rem));
+  }
+}
+
+.work-track::-webkit-scrollbar {
+  display: none;
+}
+
+.work-track.is-dragging {
+  cursor: grabbing;
+  scroll-snap-type: none;
+}
+
+.work-track.is-dragging * {
+  pointer-events: none;
+}

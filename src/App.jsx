@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { Github, Linkedin, Twitter, Mail, BookOpen, Code, Palette, Coffee, Heart, Lightbulb } from 'lucide-react';
+import { Github, Linkedin, Twitter, Mail, BookOpen, Code, Palette, Coffee, Heart, Lightbulb, ChevronLeft, ChevronRight, ArrowUpRight } from 'lucide-react';
 import { AnimatedSection } from './lib/animation.jsx';
 
 // ============================================
@@ -51,8 +51,22 @@ const translations = {
     },
     nav: {
       about: 'Sobre',
+      projects: 'Projetos',
       work: 'Trabalho',
       contact: 'Contato'
+    },
+    work: {
+      title: 'Projetos & Cases',
+      hint: 'Arraste para o lado',
+      visit: 'Visitar site',
+      prev: 'Projeto anterior',
+      next: 'Próximo projeto',
+      roles: {
+        fba: 'Marca & Presença Digital',
+        bkdg: 'Produto & UX',
+        eduardobraz: 'Site Pessoal',
+        sniffer: 'PMO'
+      }
     },
     timeline: {
       title: 'Jornada Profissional',
@@ -130,8 +144,22 @@ const translations = {
     },
     nav: {
       about: 'About',
+      projects: 'Projects',
       work: 'Work',
       contact: 'Contact'
+    },
+    work: {
+      title: 'Projects & Cases',
+      hint: 'Drag to browse',
+      visit: 'Visit site',
+      prev: 'Previous project',
+      next: 'Next project',
+      roles: {
+        fba: 'Brand & Digital Presence',
+        bkdg: 'Product & UX',
+        eduardobraz: 'Personal Site',
+        sniffer: 'PMO'
+      }
     },
     timeline: {
       title: 'Professional Journey',
@@ -212,12 +240,239 @@ const staticData = {
     { icon: Mail, label: "Email", url: "mailto:joao@example.com", color: "hover:text-red-400" },
   ],
   eventIcons: [Code, Lightbulb, BookOpen, Heart],
-  eventColors: ["bg-blue-500", "bg-yellow-500", "bg-purple-500", "bg-red-500"]
+  eventColors: ["bg-blue-500", "bg-yellow-500", "bg-purple-500", "bg-red-500"],
+  // Previews are hero screenshots captured at 1440x900 (16:10) — the same
+  // aspect ratio the mockup viewport uses, so nothing gets cropped.
+  projects: [
+    { slug: "fba", name: "fba.", domain: "fba.center", url: "https://fba.center", image: "cases/fba.jpg" },
+    { slug: "bkdg", name: "BKDG", domain: "bkdg.co", url: "https://bkdg.co", image: "cases/bkdg.jpg" },
+    { slug: "eduardobraz", name: "Eduardo Braz", domain: "eduardobraz.com", url: "https://eduardobraz.com", image: "cases/eduardobraz.jpg" },
+    { slug: "sniffer", name: "Sniffer", domain: "sniffer.network", url: "https://sniffer.network", image: "cases/sniffer.jpg" }
+  ]
 };
 
 // ============================================
 // COMPONENTES
 // ============================================
+
+// Desktop window chrome wrapping a static screenshot of the live site.
+const BrowserMockup = ({ domain, image, alt }) => (
+  <div className="rounded-2xl overflow-hidden bg-white border border-black/[0.08] shadow-[0_18px_50px_-24px_rgba(0,0,0,0.45)] transition-shadow duration-500 group-hover:shadow-[0_28px_70px_-24px_rgba(0,0,0,0.55)]">
+    {/* Title bar */}
+    <div className="h-9 md:h-11 flex items-center gap-4 px-4 bg-[#f5f5f7] border-b border-black/[0.06]">
+      <div className="flex items-center gap-1.5 shrink-0">
+        <span className="w-2.5 h-2.5 rounded-full bg-[#ff5f57]"></span>
+        <span className="w-2.5 h-2.5 rounded-full bg-[#febc2e]"></span>
+        <span className="w-2.5 h-2.5 rounded-full bg-[#28c840]"></span>
+      </div>
+      <div className="flex-1 flex justify-center min-w-0">
+        <span className="px-3 py-1 rounded-md bg-black/[0.05] text-gray-500 text-[10px] md:text-[11px] tracking-tight truncate max-w-full">
+          {domain}
+        </span>
+      </div>
+      {/* Balances the traffic lights so the URL pill stays optically centered */}
+      <div className="w-[46px] shrink-0" aria-hidden="true"></div>
+    </div>
+
+    {/* Viewport — matches the 16:10 capture ratio so nothing is cropped */}
+    <div className="aspect-[16/10] w-full bg-gray-50 overflow-hidden">
+      <img
+        src={`${import.meta.env.BASE_URL}${image}`}
+        alt={alt}
+        loading="lazy"
+        decoding="async"
+        width={1440}
+        height={900}
+        className="w-full h-full object-cover object-top transition-transform duration-700 ease-out group-hover:scale-[1.03]"
+      />
+    </div>
+  </div>
+);
+
+const WorkSection = ({ t }) => {
+  const trackRef = React.useRef(null);
+  const [progress, setProgress] = React.useState(0);
+  const [thumb, setThumb] = React.useState(100);
+  const [atStart, setAtStart] = React.useState(true);
+  const [atEnd, setAtEnd] = React.useState(false);
+
+  // Distance between two cards (card width + gap), read from the DOM so the
+  // arrows stay correct across breakpoints without duplicating Tailwind values.
+  const getStep = (track) => {
+    const [first, second] = track.children;
+    if (first && second) return second.offsetLeft - first.offsetLeft;
+    return first ? first.offsetWidth : track.clientWidth;
+  };
+
+  const syncProgress = React.useCallback(() => {
+    const track = trackRef.current;
+    if (!track) return;
+    const max = track.scrollWidth - track.clientWidth;
+    setProgress(max > 0 ? Math.min(1, Math.max(0, track.scrollLeft / max)) : 0);
+    // Thumb length mirrors how much of the track is visible, like a scrollbar.
+    setThumb(track.scrollWidth > 0 ? Math.max(12, (track.clientWidth / track.scrollWidth) * 100) : 100);
+    setAtStart(track.scrollLeft <= 1);
+    setAtEnd(max <= 0 || track.scrollLeft >= max - 1);
+  }, []);
+
+  // A ResizeObserver fires once on observe, so it covers the initial measurement
+  // as well as later reflows (breakpoint changes, images settling in).
+  useEffect(() => {
+    const track = trackRef.current;
+    if (!track) return undefined;
+    const observer = new ResizeObserver(syncProgress);
+    observer.observe(track);
+    return () => observer.disconnect();
+  }, [syncProgress]);
+
+  const scrollByCard = (direction) => {
+    const track = trackRef.current;
+    if (!track) return;
+    track.scrollBy({ left: direction * getStep(track), behavior: 'smooth' });
+  };
+
+  // Pointer dragging for mouse users. Touch devices already scroll natively,
+  // so hijacking those events would only fight the browser.
+  const drag = React.useRef({ active: false, startX: 0, startScroll: 0, moved: false });
+
+  const handlePointerDown = (e) => {
+    if (e.pointerType !== 'mouse') return;
+    const track = trackRef.current;
+    if (!track) return;
+    drag.current = { active: true, startX: e.clientX, startScroll: track.scrollLeft, moved: false };
+  };
+
+  const handlePointerMove = (e) => {
+    const track = trackRef.current;
+    if (!drag.current.active || !track) return;
+    const delta = e.clientX - drag.current.startX;
+    if (!drag.current.moved && Math.abs(delta) > 5) {
+      drag.current.moved = true;
+      track.classList.add('is-dragging');
+      track.setPointerCapture?.(e.pointerId);
+    }
+    if (drag.current.moved) track.scrollLeft = drag.current.startScroll - delta;
+  };
+
+  const endDrag = (e) => {
+    const track = trackRef.current;
+    if (!drag.current.active) return;
+    drag.current.active = false;
+    if (track) {
+      track.classList.remove('is-dragging');
+      if (e?.pointerId !== undefined) track.releasePointerCapture?.(e.pointerId);
+    }
+  };
+
+  // A drag that ends over a card would otherwise fire its link. `moved` is reset
+  // on the next pointerdown, so a genuine click is never swallowed.
+  const handleClickCapture = (e) => {
+    if (!drag.current.moved) return;
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const arrowClass = (disabled) =>
+    `w-11 h-11 rounded-full border border-black/15 flex items-center justify-center transition-all duration-300 ${
+      disabled
+        ? 'opacity-25 cursor-not-allowed'
+        : 'hover:bg-black hover:text-white hover:border-black'
+    }`;
+
+  return (
+    <section id="work" className="bg-white py-20 md:py-32 border-t border-gray-100">
+      <div className="max-w-6xl mx-auto px-6">
+        <AnimatedSection>
+          <div className="flex items-end justify-between gap-6 mb-10 md:mb-16">
+            <div>
+              <h2 className="text-4xl md:text-6xl font-black text-black tracking-tighter uppercase">
+                {t.work.title}
+              </h2>
+              <p className="mt-3 text-gray-400 text-[10px] md:text-xs font-semibold uppercase tracking-[0.2em]">
+                {t.work.hint}
+              </p>
+            </div>
+
+            <div className="hidden md:flex items-center gap-3 shrink-0">
+              <button
+                type="button"
+                onClick={() => scrollByCard(-1)}
+                disabled={atStart}
+                aria-label={t.work.prev}
+                className={arrowClass(atStart)}
+              >
+                <ChevronLeft size={18} strokeWidth={2} />
+              </button>
+              <button
+                type="button"
+                onClick={() => scrollByCard(1)}
+                disabled={atEnd}
+                aria-label={t.work.next}
+                className={arrowClass(atEnd)}
+              >
+                <ChevronRight size={18} strokeWidth={2} />
+              </button>
+            </div>
+          </div>
+        </AnimatedSection>
+      </div>
+
+      {/* Full-bleed track so the next card peeks past the container edge */}
+      <div
+        ref={trackRef}
+        onScroll={syncProgress}
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={endDrag}
+        onPointerCancel={endDrag}
+        onPointerLeave={endDrag}
+        onClickCapture={handleClickCapture}
+        className="work-track flex gap-5 md:gap-8 overflow-x-auto snap-x snap-mandatory scroll-smooth pb-2"
+      >
+        {staticData.projects.map((project) => (
+          <a
+            key={project.slug}
+            href={project.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="group shrink-0 snap-start w-[82vw] sm:w-[64vw] md:w-[52vw] lg:w-[44vw] xl:w-[600px]"
+          >
+            <BrowserMockup
+              domain={project.domain}
+              image={project.image}
+              alt={`${project.name} — ${project.domain}`}
+            />
+
+            <div className="mt-5 md:mt-6 flex items-start justify-between gap-4">
+              <div className="min-w-0">
+                <h3 className="text-2xl md:text-3xl font-black text-black tracking-tighter leading-tight truncate">
+                  {project.name}
+                </h3>
+                <p className="mt-1 text-gray-400 text-[10px] md:text-xs font-semibold uppercase tracking-[0.2em]">
+                  {t.work.roles[project.slug]}
+                </p>
+              </div>
+              <span className="shrink-0 flex items-center gap-1.5 text-gray-500 text-[10px] md:text-xs font-semibold uppercase tracking-[0.15em] group-hover:text-black transition-colors duration-300 pt-1">
+                {t.work.visit}
+                <ArrowUpRight size={14} strokeWidth={2.5} className="transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+              </span>
+            </div>
+          </a>
+        ))}
+      </div>
+
+      {/* Progress bar */}
+      <div className="max-w-6xl mx-auto px-6 mt-8 md:mt-12">
+        <div className="h-px w-full bg-black/10 relative overflow-hidden">
+          <div
+            className="absolute top-0 h-full bg-black"
+            style={{ width: `${thumb}%`, left: `${progress * (100 - thumb)}%` }}
+          ></div>
+        </div>
+      </div>
+    </section>
+  );
+};
 
 const App = () => {
   const [language, setLanguage] = React.useState('PT');
@@ -246,7 +501,7 @@ const App = () => {
         <div className="flex-1 flex justify-center">
           <button
             onClick={toggleLanguage}
-            className="text-black px-4 py-1.5 rounded-full text-xs md:text-sm font-bold tracking-wider hover:bg-gray-100 transition-colors uppercase flex items-center gap-1"
+            className="text-black px-2 md:px-4 py-1.5 rounded-full text-xs md:text-sm font-bold tracking-wider hover:bg-gray-100 transition-colors uppercase flex items-center gap-1"
             aria-label="Change Language"
           >
             <span className={language === 'PT' ? 'opacity-100' : 'opacity-40'}>PT</span>
@@ -256,22 +511,28 @@ const App = () => {
         </div>
 
         {/* Right - Navigation Menu */}
-        <nav className="flex-1 flex justify-end gap-4 md:gap-8">
+        <nav className="flex-1 flex justify-end gap-3 md:gap-8">
           <a
             href="#about"
-            className="text-black text-xs md:text-base font-medium tracking-wider hover:text-gray-600 transition-colors uppercase whitespace-nowrap"
+            className="text-black text-[10px] md:text-base font-medium tracking-wide md:tracking-wider hover:text-gray-600 transition-colors uppercase whitespace-nowrap"
           >
             {t.nav.about}
           </a>
           <a
             href="#journey"
-            className="text-black text-xs md:text-base font-medium tracking-wider hover:text-gray-600 transition-colors uppercase whitespace-nowrap"
+            className="text-black text-[10px] md:text-base font-medium tracking-wide md:tracking-wider hover:text-gray-600 transition-colors uppercase whitespace-nowrap"
           >
             {t.nav.work}
           </a>
           <a
+            href="#work"
+            className="text-black text-[10px] md:text-base font-medium tracking-wide md:tracking-wider hover:text-gray-600 transition-colors uppercase whitespace-nowrap"
+          >
+            {t.nav.projects}
+          </a>
+          <a
             href="#contact"
-            className="text-black text-xs md:text-base font-medium tracking-wider hover:text-gray-600 transition-colors uppercase whitespace-nowrap"
+            className="text-black text-[10px] md:text-base font-medium tracking-wide md:tracking-wider hover:text-gray-600 transition-colors uppercase whitespace-nowrap"
           >
             {t.nav.contact}
           </a>
@@ -476,6 +737,9 @@ const App = () => {
           </div>
         </div>
       </section>
+
+      {/* Projects & Cases (Carousel) */}
+      <WorkSection t={t} />
 
       {/* Toolkit & Stack Section - Mobile Only */}
       <section className="bg-black py-20 px-6 md:hidden">
