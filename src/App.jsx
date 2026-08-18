@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
-import { Github, Linkedin, Twitter, Mail, BookOpen, Code, Palette, Coffee, Heart, Lightbulb, ChevronLeft, ChevronRight, ArrowUpRight } from 'lucide-react';
+import { Github, Linkedin, Twitter, Mail, BookOpen, Code, Palette, Coffee, Heart, Lightbulb, ChevronLeft, ChevronRight, ArrowUpRight, ChevronDown } from 'lucide-react';
 import { AnimatedSection } from './lib/animation.jsx';
+import { whatsappLink } from './lib/whatsapp.js';
 
 // `three` pesa mais que todo o resto do bundle somado, e o efeito é
 // decorativo — carregar sob demanda deixa o nome do hero pintar primeiro.
@@ -138,8 +139,27 @@ const translations = {
     },
     contact: {
       title: "Vamos construir algo juntos?",
-      email: "joaogabrielsantosanjos@gmail.com",
-      social: "LinkedIn / Perfil Profissional"
+      subtitle: "Conta o que você precisa e eu respondo no WhatsApp.",
+      name: "Seu nome",
+      namePlaceholder: "Como você se chama?",
+      topic: "O que você quer fazer?",
+      topicPlaceholder: "Selecione uma opção",
+      topics: [
+        "Site institucional",
+        "Landing page de campanha",
+        "Redesign de site existente",
+        "Loja / e-commerce",
+        "Outro"
+      ],
+      message: "Sua mensagem",
+      messagePlaceholder: "Conte um pouco sobre o projeto...",
+      submit: "Enviar no WhatsApp",
+      // O formulário não envia nada sozinho — ele abre o WhatsApp com o texto
+      // pronto. Dizer isso evita que a pessoa feche a aba achando que enviou.
+      note: "Abre o WhatsApp com a mensagem pronta. Você confere antes de enviar.",
+      waIntro: "Olá, João! Aqui é",
+      waTopic: "O que eu quero fazer:",
+      waSource: "Enviado pelo site joaogsantos.com"
     },
 
     footer: "João Gabriel dos Santos. Made with curiosity and AI."
@@ -231,8 +251,25 @@ const translations = {
     },
     contact: {
       title: "Let's build something together?",
-      email: "joaogabrielsantosanjos@gmail.com",
-      social: "LinkedIn / Professional Profile"
+      subtitle: "Tell me what you need and I'll reply on WhatsApp.",
+      name: "Your name",
+      namePlaceholder: "What should I call you?",
+      topic: "What do you want to do?",
+      topicPlaceholder: "Select an option",
+      topics: [
+        "Company website",
+        "Campaign landing page",
+        "Redesign of an existing site",
+        "Online store / e-commerce",
+        "Something else"
+      ],
+      message: "Your message",
+      messagePlaceholder: "Tell me a bit about the project...",
+      submit: "Send on WhatsApp",
+      note: "Opens WhatsApp with the message ready. You review it before sending.",
+      waIntro: "Hi, João! This is",
+      waTopic: "What I want to do:",
+      waSource: "Sent from joaogsantos.com"
     },
 
     footer: "João Gabriel dos Santos. Made with curiosity and AI."
@@ -498,6 +535,112 @@ const WorkSection = ({ t }) => {
         </div>
       </div>
     </section>
+  );
+};
+
+const ContactForm = ({ t }) => {
+  const [name, setName] = React.useState('');
+  const [topic, setTopic] = React.useState('');
+  const [message, setMessage] = React.useState('');
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+
+    const text = [
+      `${t.contact.waIntro} ${name.trim()}.`,
+      '',
+      `${t.contact.waTopic} ${topic}`,
+      '',
+      message.trim(),
+      '',
+      t.contact.waSource
+    ].join('\n');
+
+    const url = whatsappLink(text);
+    // Abrir em aba nova mantém o site aberto atrás. Se o bloqueador de pop-up
+    // barrar mesmo vindo de um clique, navegar na própria aba é melhor do que
+    // o botão não fazer nada.
+    const opened = window.open(url, '_blank', 'noopener,noreferrer');
+    if (!opened) window.location.href = url;
+  };
+
+  const fieldClass =
+    'w-full bg-transparent border-b border-black/15 py-3 text-lg md:text-xl text-black placeholder:text-gray-300 focus:outline-none focus:border-black transition-colors duration-300';
+  const labelClass =
+    'block text-gray-400 text-[10px] md:text-xs font-semibold uppercase tracking-[0.2em] mb-1';
+
+  return (
+    <form onSubmit={handleSubmit} className="max-w-xl mx-auto text-left mt-12 md:mt-16">
+      <div className="mb-10">
+        <label htmlFor="contact-name" className={labelClass}>
+          {t.contact.name}
+        </label>
+        <input
+          id="contact-name"
+          type="text"
+          required
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          placeholder={t.contact.namePlaceholder}
+          autoComplete="name"
+          className={fieldClass}
+        />
+      </div>
+
+      <div className="mb-10">
+        <label htmlFor="contact-topic" className={labelClass}>
+          {t.contact.topic}
+        </label>
+        <div className="relative">
+          <select
+            id="contact-topic"
+            required
+            value={topic}
+            onChange={(e) => setTopic(e.target.value)}
+            className={`${fieldClass} appearance-none pr-8 cursor-pointer ${topic ? '' : 'text-gray-300'}`}
+          >
+            <option value="" disabled>
+              {t.contact.topicPlaceholder}
+            </option>
+            {t.contact.topics.map((option) => (
+              <option key={option} value={option} className="text-black">
+                {option}
+              </option>
+            ))}
+          </select>
+          <ChevronDown
+            size={18}
+            strokeWidth={2}
+            aria-hidden="true"
+            className="absolute right-0 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
+          />
+        </div>
+      </div>
+
+      <div className="mb-10">
+        <label htmlFor="contact-message" className={labelClass}>
+          {t.contact.message}
+        </label>
+        <textarea
+          id="contact-message"
+          required
+          rows={4}
+          value={message}
+          onChange={(e) => setMessage(e.target.value)}
+          placeholder={t.contact.messagePlaceholder}
+          className={`${fieldClass} resize-none`}
+        />
+      </div>
+
+      <button
+        type="submit"
+        className="w-full sm:w-auto px-8 py-3 border border-black rounded-full text-black hover:bg-black hover:text-white transition-all duration-300 font-bold uppercase tracking-widest text-xs"
+      >
+        {t.contact.submit}
+      </button>
+
+      <p className="mt-4 text-gray-400 text-xs md:text-sm">{t.contact.note}</p>
+    </form>
   );
 };
 
@@ -848,25 +991,13 @@ const App = () => {
       <section id="contact" className="bg-white py-32 border-t border-gray-100">
         <div className="max-w-7xl mx-auto px-6 text-center">
           <AnimatedSection>
-            <h2 className="text-3xl md:text-4xl font-bold text-black mb-10 tracking-tight">
+            <h2 className="text-3xl md:text-4xl font-bold text-black mb-4 tracking-tight">
               {t.contact.title}
             </h2>
-            <a
-              href={`mailto:${t.contact.email}`}
-              className="block text-xl sm:text-2xl md:text-4xl lg:text-5xl font-light text-gray-900 hover:text-gray-500 transition-colors duration-300 tracking-tight break-all sm:break-normal text-center underline decoration-1 underline-offset-8 decoration-gray-300 hover:decoration-gray-500"
-            >
-              {t.contact.email}
-            </a>
-            <div className="mt-12">
-              <a
-                href="https://www.linkedin.com/in/jo%C3%A3o-gabrieldsda/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-block px-8 py-3 border border-black rounded-full text-black hover:bg-black hover:text-white transition-all duration-300 font-bold uppercase tracking-widest text-xs"
-              >
-                {t.contact.social}
-              </a>
-            </div>
+            <p className="text-gray-500 text-base md:text-lg tracking-tight">
+              {t.contact.subtitle}
+            </p>
+            <ContactForm t={t} />
           </AnimatedSection>
         </div>
       </section>
