@@ -2,6 +2,15 @@ import React, { useEffect } from 'react';
 import { Github, Linkedin, Twitter, Mail, BookOpen, Code, Palette, Coffee, Heart, Lightbulb, ChevronLeft, ChevronRight, ArrowUpRight } from 'lucide-react';
 import { AnimatedSection } from './lib/animation.jsx';
 
+// `three` pesa mais que todo o resto do bundle somado, e o efeito é
+// decorativo — carregar sob demanda deixa o nome do hero pintar primeiro.
+const LiquidEther = React.lazy(() => import('./components/LiquidEther.jsx'));
+
+// Precisa ser constante de módulo: `colors` entra no array de dependências do
+// efeito do componente, e um literal novo a cada render derrubaria e recriaria
+// o contexto WebGL inteiro — o App re-renderiza a cada evento de scroll.
+const HERO_FLUID_COLORS = ['#EDEDED', '#C8C8C8', '#9A9A9A'];
+
 // ============================================
 // HELPERS
 // ============================================
@@ -255,6 +264,24 @@ const staticData = {
 // COMPONENTES
 // ============================================
 
+// Um fundo animado em tela cheia é exatamente o que "reduzir movimento" pede
+// para desligar, então respeitamos a preferência do sistema.
+const usePrefersReducedMotion = () => {
+  const query = '(prefers-reduced-motion: reduce)';
+  const [reduced, setReduced] = React.useState(
+    () => typeof window !== 'undefined' && window.matchMedia(query).matches
+  );
+
+  useEffect(() => {
+    const mq = window.matchMedia(query);
+    const onChange = () => setReduced(mq.matches);
+    mq.addEventListener('change', onChange);
+    return () => mq.removeEventListener('change', onChange);
+  }, []);
+
+  return reduced;
+};
+
 // Desktop window chrome wrapping a static screenshot of the live site.
 const BrowserMockup = ({ domain, image, alt }) => (
   <div className="rounded-2xl overflow-hidden bg-white border border-black/[0.08] shadow-[0_18px_50px_-24px_rgba(0,0,0,0.45)] transition-shadow duration-500 group-hover:shadow-[0_28px_70px_-24px_rgba(0,0,0,0.55)]">
@@ -477,6 +504,7 @@ const WorkSection = ({ t }) => {
 const App = () => {
   const [language, setLanguage] = React.useState('PT');
   const [scrollY, setScrollY] = React.useState(0);
+  const prefersReducedMotion = usePrefersReducedMotion();
 
   useEffect(() => {
     const handleScroll = () => setScrollY(window.scrollY);
@@ -568,6 +596,33 @@ const App = () => {
 
       {/* Hero Section - Seamless Design */}
       <section className="relative min-h-screen flex items-center overflow-visible bg-white pt-24">
+        {/* Fundo fluido. pointer-events-none não atrapalha a interação: o
+            componente escuta o mouse na window e testa contra o rect do
+            container, então o efeito continua reagindo sem capturar cliques. */}
+        {!prefersReducedMotion && (
+          <div className="absolute inset-0 z-0 pointer-events-none" aria-hidden="true">
+            <React.Suspense fallback={null}>
+              <LiquidEther
+                colors={HERO_FLUID_COLORS}
+                mouseForce={20}
+                cursorSize={100}
+                isViscous={false}
+                viscous={30}
+                iterationsViscous={32}
+                iterationsPoisson={32}
+                resolution={0.5}
+                isBounce={false}
+                autoDemo={true}
+                autoSpeed={0.5}
+                autoIntensity={1.6}
+                takeoverDuration={0.25}
+                autoResumeDelay={3000}
+                autoRampDuration={0.6}
+              />
+            </React.Suspense>
+          </div>
+        )}
+
         <div className="absolute top-1/2 right-0 -translate-y-1/2 select-none pointer-events-none z-0 overflow-hidden text-right leading-none">
           <span className="block text-[30vw] font-black text-black opacity-[0.05] tracking-tighter">
             JG
