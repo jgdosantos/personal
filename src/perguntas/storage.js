@@ -7,6 +7,8 @@
 // A regra é sempre a mesma: falhou, segue em memória, a página continua
 // funcionando. Mesmo espírito de src/brief/token.js.
 
+import { PERGUNTAS } from './content.js';
+
 const PADRAO = 'Ligia';
 
 /**
@@ -86,15 +88,24 @@ export const lerOuCriarSessao = (respondente) => {
 };
 
 /**
- * Serialização exata das respostas do último envio bem-sucedido.
+ * Serialização das respostas, usada para guardar o último envio bem-sucedido.
  *
  * É o que faz o aviso "Você tem respostas novas para enviar" aparecer só
  * quando ela realmente mudou algo depois de enviar. Comparar strings
  * serializadas em vez de inventar um hash: não colide, não tem borda, e 10 KB
  * a mais no storage não é problema para ninguém.
+ *
+ * Canônica de propósito — percorre PERGUNTAS na ordem e guarda só os valores.
+ * JSON.stringify do objeto cru dependeria da ordem de inserção das chaves,
+ * então apagar uma resposta e redigitá-la produziria uma string diferente para
+ * um conteúdo idêntico, e o aviso apareceria sem ela ter mudado nada.
  */
+export const serializar = (respostas) => JSON.stringify(
+  PERGUNTAS.map((p) => respostas[p.id] || ''),
+);
+
 export const lerUltimoEnvio = (respondente) => ler(chaves(respondente).enviado);
 
 export const gravarUltimoEnvio = (respondente, respostas) => {
-  gravar(chaves(respondente).enviado, JSON.stringify(respostas));
+  gravar(chaves(respondente).enviado, serializar(respostas));
 };

@@ -1,6 +1,7 @@
-import React, { useCallback, useEffect, useState } from 'react';
-import { BLOCOS, copy, splitMarcado } from './content.js';
-import { gravarRespostas, lerRespostas, respondenteDaUrl } from './storage.js';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { BLOCOS, PERGUNTAS, copy, splitMarcado } from './content.js';
+import { gravarRespostas, lerOuCriarSessao, lerRespostas, respondenteDaUrl } from './storage.js';
+import BarraRodape from './BarraRodape.jsx';
 import Pergunta from './Pergunta.jsx';
 
 // Espaçamentos do brief, num lugar só em vez de espalhados pelo JSX:
@@ -121,6 +122,14 @@ const Bloco = ({ bloco, primeiroN, respostas, onChange }) => (
 const PerguntasLigia = () => {
   // Resolvidos uma vez, na função inicial do useState.
   const [respondente] = useState(respondenteDaUrl);
+  const [sessao] = useState(() => lerOuCriarSessao(respondenteDaUrl()));
+
+  // O estado de "já enviou com sucesso" vive AQUI, no pai, porque quem troca o
+  // bloco de fim de página é a página — a barra só avisa. Um callback estável
+  // sobe o sinal; o contrário (estado na barra, leitura pelo pai) exigiria
+  // levantar o estado depois de qualquer jeito.
+  const [enviado, setEnviado] = useState(false);
+  const marcarEnviado = useCallback(() => setEnviado(true), []);
 
   // Hidratar aqui, e não num useEffect: inicializar em efeito faz a página
   // piscar vazia antes de restaurar, e ela acharia que perdeu tudo.
@@ -136,6 +145,14 @@ const PerguntasLigia = () => {
       return proximo;
     });
   }, [respondente]);
+
+  // Conta sobre PERGUNTAS, não sobre as chaves de `respostas`: uma chave
+  // órfã no localStorage (id antigo, outro questionário) inflaria o contador
+  // e a barra diria "49 de 48".
+  const preenchidas = useMemo(
+    () => PERGUNTAS.filter((p) => (respostas[p.id] || '').trim()).length,
+    [respostas],
+  );
 
   useEffect(() => {
     document.title = 'De Maria · antes de montar a sua loja';
@@ -181,13 +198,21 @@ const PerguntasLigia = () => {
 
         <footer style={{ borderTop: '1px solid #E8E8ED', paddingTop: ESPACO.entrePerguntas }}>
           <p className="text-[17px] text-[#6E6E73]" style={{ lineHeight: 1.55 }}>
-            <Marcado texto={copy.fim} />
+            <Marcado texto={enviado ? copy.fimEnviado : copy.fim} />
           </p>
           <p className="mt-6 text-[13px] text-[#86868B]" style={{ lineHeight: 1.5 }}>
             {copy.privacidade}
           </p>
         </footer>
       </div>
+
+      <BarraRodape
+        respostas={respostas}
+        preenchidas={preenchidas}
+        respondente={respondente}
+        sessao={sessao}
+        onEnviado={marcarEnviado}
+      />
     </div>
   );
 };
