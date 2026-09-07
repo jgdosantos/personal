@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client'
 import App from './App.jsx'
 import PropostaMarcelo from './proposta/PropostaMarcelo.jsx'
 import BriefForm from './brief/BriefForm.jsx'
+import PerguntasLigia from './perguntas/PerguntasLigia.jsx'
 import './index.css'
 
 // Roteamento por path. O vercel.json reescreve tudo para o index, então o
@@ -10,6 +11,7 @@ import './index.css'
 const routes = {
   '/proposta-marcelo': PropostaMarcelo,
   '/brief': BriefForm,
+  '/perguntas-ligia': PerguntasLigia,
 }
 
 const path = window.location.pathname.replace(/\/+$/, '') || '/'
