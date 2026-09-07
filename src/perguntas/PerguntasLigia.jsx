@@ -1,5 +1,7 @@
-import React, { useEffect } from 'react';
-import { copy } from './content.js';
+import React, { useCallback, useEffect, useState } from 'react';
+import { BLOCOS, copy, splitMarcado } from './content.js';
+import { gravarRespostas, lerRespostas, respondenteDaUrl } from './storage.js';
+import Pergunta from './Pergunta.jsx';
 
 // Espaçamentos do brief, num lugar só em vez de espalhados pelo JSX:
 // ~72px entre blocos, ~28px entre perguntas, coluna de 720px.
@@ -68,7 +70,73 @@ const Topo = () => (
   </header>
 );
 
+// Renderiza **negrito** e <em>itálico</em> a partir de dados, sem
+// dangerouslySetInnerHTML.
+const Marcado = ({ texto }) => splitMarcado(texto).map((parte, i) => {
+  if (parte.tipo === 'negrito') return <strong key={i} className="font-semibold">{parte.texto}</strong>;
+  if (parte.tipo === 'italico') return <em key={i}>{parte.texto}</em>;
+  return <React.Fragment key={i}>{parte.texto}</React.Fragment>;
+});
+
+// Primeiro número de cada bloco, calculado uma vez fora do render: a numeração
+// é contínua ATRAVESSANDO os blocos (o bloco 2 começa no 9), e BLOCOS é
+// estático — não há motivo para recontar a cada tecla.
+const PRIMEIRO_N = BLOCOS.map(
+  (_, i) => BLOCOS.slice(0, i).reduce((total, b) => total + b.qs.length, 0) + 1,
+);
+
+const Bloco = ({ bloco, primeiroN, respostas, onChange }) => (
+  <section style={{ marginBottom: ESPACO.entreBlocos }}>
+    <h2
+      className="font-semibold text-[#1D1D1F]"
+      style={{ fontSize: '1.6rem', letterSpacing: '-0.02em', lineHeight: 1.2 }}
+    >
+      {bloco.t}
+    </h2>
+    {/* O subtítulo explica a ela POR QUE a pergunta está sendo feita. O brief é
+        explícito em que isso aumenta muito a taxa de resposta — não é enfeite. */}
+    <p className="mt-2 text-[15px] text-[#6E6E73]" style={{ lineHeight: 1.5 }}>
+      {bloco.sub}
+    </p>
+
+    {/* Divisória só ENTRE perguntas (a borda vive no topo de cada item), nunca
+        em volta do bloco: sem card, sem moldura, sem sombra. */}
+    <div className="mt-6">
+      {bloco.qs.map(([id, texto, prioridade, dica], i) => (
+        <Pergunta
+          key={id}
+          id={id}
+          n={primeiroN + i}
+          texto={texto}
+          prioridade={prioridade === 1}
+          dica={dica}
+          valor={respostas[id]}
+          onChange={onChange}
+        />
+      ))}
+    </div>
+  </section>
+);
+
 const PerguntasLigia = () => {
+  // Resolvidos uma vez, na função inicial do useState.
+  const [respondente] = useState(respondenteDaUrl);
+
+  // Hidratar aqui, e não num useEffect: inicializar em efeito faz a página
+  // piscar vazia antes de restaurar, e ela acharia que perdeu tudo.
+  const [respostas, setRespostas] = useState(() => lerRespostas(respondenteDaUrl()));
+
+  // Estável entre renders — é o que permite ao memo de Pergunta funcionar. O
+  // setState funcional evita depender de `respostas` e recriar a função a cada
+  // tecla, que anularia a memoização dos outros 47 campos.
+  const onChange = useCallback((id, valor) => {
+    setRespostas((anterior) => {
+      const proximo = { ...anterior, [id]: valor };
+      gravarRespostas(respondente, proximo);
+      return proximo;
+    });
+  }, [respondente]);
+
   useEffect(() => {
     document.title = 'De Maria · antes de montar a sua loja';
 
@@ -99,8 +167,26 @@ const PerguntasLigia = () => {
       >
         <Topo />
 
-        {/* Os 7 blocos com as 48 perguntas entram aqui na T5. */}
-        <main style={{ marginTop: ESPACO.entreBlocos }} />
+        <main style={{ marginTop: ESPACO.entreBlocos }}>
+          {BLOCOS.map((bloco, i) => (
+            <Bloco
+              key={bloco.t}
+              bloco={bloco}
+              primeiroN={PRIMEIRO_N[i]}
+              respostas={respostas}
+              onChange={onChange}
+            />
+          ))}
+        </main>
+
+        <footer style={{ borderTop: '1px solid #E8E8ED', paddingTop: ESPACO.entrePerguntas }}>
+          <p className="text-[17px] text-[#6E6E73]" style={{ lineHeight: 1.55 }}>
+            <Marcado texto={copy.fim} />
+          </p>
+          <p className="mt-6 text-[13px] text-[#86868B]" style={{ lineHeight: 1.5 }}>
+            {copy.privacidade}
+          </p>
+        </footer>
       </div>
     </div>
   );
