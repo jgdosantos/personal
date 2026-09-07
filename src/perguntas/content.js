@@ -169,6 +169,10 @@ export const copy = {
   },
   avisoNaoEnviado: 'Você tem respostas novas para enviar',
   contador: (preenchidas) => `${preenchidas} de ${TOTAL}`,
+  // Contador por bloco. A barra do rodapé diz onde ela está nas 48; este diz
+  // onde ela está NESTE bloco. No celular a página é longa, e "faltam 2 daqui"
+  // move muito mais que "faltam 31 no total".
+  contadorBloco: (preenchidas, total) => `${preenchidas} de ${total}`,
   fallback: {
     titulo: 'Não consegui enviar agora',
     texto: 'Nada do que você escreveu se perdeu. Copie as respostas ou mande no WhatsApp — depois é só tentar enviar de novo.',

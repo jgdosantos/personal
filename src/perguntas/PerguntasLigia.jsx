@@ -86,38 +86,58 @@ const PRIMEIRO_N = BLOCOS.map(
   (_, i) => BLOCOS.slice(0, i).reduce((total, b) => total + b.qs.length, 0) + 1,
 );
 
-const Bloco = ({ bloco, primeiroN, respostas, onChange }) => (
-  <section style={{ marginBottom: ESPACO.entreBlocos }}>
-    <h2
-      className="font-semibold text-[#1D1D1F]"
-      style={{ fontSize: '1.6rem', letterSpacing: '-0.02em', lineHeight: 1.2 }}
-    >
-      {bloco.t}
-    </h2>
-    {/* O subtítulo explica a ela POR QUE a pergunta está sendo feita. O brief é
-        explícito em que isso aumenta muito a taxa de resposta — não é enfeite. */}
-    <p className="mt-2 text-[15px] text-[#6E6E73]" style={{ lineHeight: 1.5 }}>
-      {bloco.sub}
-    </p>
+const Bloco = ({ bloco, primeiroN, respostas, onChange }) => {
+  // Mesma regra de "respondida" do ✓ da pergunta e do contador do rodapé:
+  // conteúdo depois do trim. Três lugares divergirem aqui seria a Ligia lendo
+  // "8 de 8" com um campo ainda vazio.
+  const respondidasNoBloco = bloco.qs.filter(
+    ([id]) => (respostas[id] || '').trim(),
+  ).length;
 
-    {/* Divisória só ENTRE perguntas (a borda vive no topo de cada item), nunca
-        em volta do bloco: sem card, sem moldura, sem sombra. */}
-    <div className="mt-6">
-      {bloco.qs.map(([id, texto, prioridade, dica], i) => (
-        <Pergunta
-          key={id}
-          id={id}
-          n={primeiroN + i}
-          texto={texto}
-          prioridade={prioridade === 1}
-          dica={dica}
-          valor={respostas[id]}
-          onChange={onChange}
-        />
-      ))}
-    </div>
-  </section>
-);
+  return (
+    <section style={{ marginBottom: ESPACO.entreBlocos }}>
+      {/* Título e contador na mesma linha, alinhados pela baseline. O contador
+          não encolhe; quem quebra é o título, que tem espaço para isso. */}
+      <div className="flex items-baseline justify-between gap-4">
+        <h2
+          className="font-semibold text-[#1D1D1F]"
+          style={{ fontSize: '1.6rem', letterSpacing: '-0.02em', lineHeight: 1.2 }}
+        >
+          {bloco.t}
+        </h2>
+        <span
+          className="flex-shrink-0 text-[13px] text-[#86868B]"
+          style={{ fontVariantNumeric: 'tabular-nums' }}
+          aria-label={`${respondidasNoBloco} de ${bloco.qs.length} respondidas neste bloco`}
+        >
+          {copy.contadorBloco(respondidasNoBloco, bloco.qs.length)}
+        </span>
+      </div>
+      {/* O subtítulo explica a ela POR QUE a pergunta está sendo feita. O brief é
+          explícito em que isso aumenta muito a taxa de resposta — não é enfeite. */}
+      <p className="mt-2 text-[15px] text-[#6E6E73]" style={{ lineHeight: 1.5 }}>
+        {bloco.sub}
+      </p>
+
+      {/* Divisória só ENTRE perguntas (a borda vive no topo de cada item), nunca
+          em volta do bloco: sem card, sem moldura, sem sombra. */}
+      <div className="mt-6">
+        {bloco.qs.map(([id, texto, prioridade, dica], i) => (
+          <Pergunta
+            key={id}
+            id={id}
+            n={primeiroN + i}
+            texto={texto}
+            prioridade={prioridade === 1}
+            dica={dica}
+            valor={respostas[id]}
+            onChange={onChange}
+          />
+        ))}
+      </div>
+    </section>
+  );
+};
 
 const PerguntasLigia = () => {
   // Resolvidos uma vez, na função inicial do useState.
