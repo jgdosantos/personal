@@ -185,6 +185,20 @@ check('o fallback tem os dois botões do brief',
 check('o fallback tem a mensagem curta dos 1400 caracteres',
   typeof copy.fallback.mensagemCurta === 'string' && copy.fallback.mensagemCurta.length > 0);
 
+// 9b. A tela de confirmação NÃO pode ter uma segunda redação da promessa.
+//     `telaEnviado.titulo` + `telaEnviado.texto` têm de reconstituir, palavra
+//     por palavra, o `fimEnviado` literal do brief (sem a marcação de negrito).
+//     Editar um e esquecer o outro é como a Ligia acabaria lendo duas versões
+//     diferentes do que acontece depois do envio.
+const semNegrito = (t) => t.replace(/\*\*/g, '');
+check('a tela de confirmação reconstitui o fimEnviado do brief',
+  `${copy.telaEnviado.titulo} ${copy.telaEnviado.texto}` === semNegrito(copy.fimEnviado),
+  `${copy.telaEnviado.titulo} ${copy.telaEnviado.texto}`);
+check('a tela de confirmação tem caminho de volta',
+  copy.telaEnviado.voltar === 'Voltar às respostas', copy.telaEnviado.voltar);
+check('o resumo da tela usa o total de 48',
+  copy.telaEnviado.resumo(12) === '12 de 48 respondidas', copy.telaEnviado.resumo(12));
+
 // 10. Sem emoji na interface — regra explícita do brief. A estrela ★ (U+2605) e
 //     o ✓ (U+2713) são glifos tipográficos, não emoji, e ficam de fora da faixa.
 const EMOJI = /[\u{1F000}-\u{1FAFF}\u{FE0F}\u{1F900}-\u{1F9FF}]/u;

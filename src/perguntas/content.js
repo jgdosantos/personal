@@ -173,6 +173,16 @@ export const copy = {
   // onde ela está NESTE bloco. No celular a página é longa, e "faltam 2 daqui"
   // move muito mais que "faltam 31 no total".
   contadorBloco: (preenchidas, total) => `${preenchidas} de ${total}`,
+
+  // Tela de confirmação. O texto é o mesmo `fimEnviado` do rodapé, partido em
+  // título e corpo — não é uma segunda redação da mesma promessa, que é como
+  // duas mensagens sobre o mesmo assunto começam a divergir.
+  telaEnviado: {
+    titulo: 'Recebido, obrigado!',
+    texto: 'Já está tudo salvo do meu lado. Se quiser completar mais alguma resposta depois, volte nesta mesma página e toque em Enviar de novo — a versão nova substitui a anterior.',
+    resumo: (preenchidas) => `${preenchidas} de ${TOTAL} respondidas`,
+    voltar: 'Voltar às respostas',
+  },
   fallback: {
     titulo: 'Não consegui enviar agora',
     texto: 'Nada do que você escreveu se perdeu. Copie as respostas ou mande no WhatsApp — depois é só tentar enviar de novo.',

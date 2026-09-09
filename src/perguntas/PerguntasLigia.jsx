@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { BLOCOS, PERGUNTAS, copy, splitMarcado } from './content.js';
+import { Enviado } from './Enviado.jsx';
 import { gravarRespostas, lerOuCriarSessao, lerRespostas, respondenteDaUrl } from './storage.js';
 import BarraRodape from './BarraRodape.jsx';
 import Pergunta from './Pergunta.jsx';
@@ -149,7 +150,18 @@ const PerguntasLigia = () => {
   // sobe o sinal; o contrário (estado na barra, leitura pelo pai) exigiria
   // levantar o estado depois de qualquer jeito.
   const [enviado, setEnviado] = useState(false);
-  const marcarEnviado = useCallback(() => setEnviado(true), []);
+  // `naTela` separa "já enviou alguma vez" de "está vendo a confirmação agora".
+  // Sem essa separação, voltar às respostas apagaria o fato do envio e o rodapé
+  // perderia o "Enviar de novo".
+  const [naTela, setNaTela] = useState(false);
+  const marcarEnviado = useCallback(() => {
+    setEnviado(true);
+    setNaTela(true);
+    // A confirmação nasce no topo. Herdar o scroll do fim do questionário faria
+    // a tela abrir já rolada, e ela veria só o texto de privacidade.
+    window.scrollTo({ top: 0, behavior: 'auto' });
+  }, []);
+  const voltarAsRespostas = useCallback(() => setNaTela(false), []);
 
   // Hidratar aqui, e não num useEffect: inicializar em efeito faz a página
   // piscar vazia antes de restaurar, e ela acharia que perdeu tudo.
@@ -195,6 +207,10 @@ const PerguntasLigia = () => {
       meta.remove();
     };
   }, []);
+
+  if (naTela) {
+    return <Enviado preenchidas={preenchidas} onVoltar={voltarAsRespostas} />;
+  }
 
   return (
     <div className="perguntas-page">
