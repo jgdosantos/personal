@@ -194,7 +194,13 @@ const Decisao = memo(({ pergunta, valor, onChange }) => {
         // fieldset + legend oculta: o título já está na tela, mas sem o
         // agrupamento o leitor de tela lê cinco rádios soltos sem dizer de que
         // pergunta são.
-        <fieldset className="mt-4 border-0 p-0" style={{ margin: 0 }}>
+        // O reset de margem é só nas laterais e embaixo. Um `margin: 0` inteiro
+        // aqui venceria o `mt-4` da classe — style inline ganha da utilidade — e
+        // as opções colariam no parágrafo da explicação.
+        <fieldset
+          className="mt-4 border-0 p-0"
+          style={{ marginInline: 0, marginBottom: 0 }}
+        >
           <legend className="sr-only">{titulo}</legend>
           <div className="flex flex-col gap-2">
             {opcoes.map((opcao) => {
