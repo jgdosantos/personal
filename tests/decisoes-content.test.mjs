@@ -219,10 +219,18 @@ check('remontar as partes reproduz o texto sem os delimitadores',
 // ------------------------------------------------------------ 11. copy literal
 check('sobretítulo literal', copy.sobretitulo === 'De Maria · joias em prata 925', copy.sobretitulo);
 check('o título da abertura é literal', copy.titulo === 'Ligia, agora são as suas escolhas', copy.titulo);
-check('a abertura tem cinco parágrafos', copy.intro.length === 5, String(copy.intro.length));
+check('a abertura tem três parágrafos', copy.intro.length === 3, String(copy.intro.length));
+
+// A abertura foi encurtada a pedido do João em 15/09/2026. As asserções deixaram
+// de fixar cada parágrafo por índice e passaram a cobrar as PROMESSAS: é o que o
+// teste realmente precisa proteger, e prender o texto ao índice só faz o teste
+// quebrar de novo no próximo corte, sem ter pegado nada de errado.
+const abertura = copy.intro.join('\n');
+
 check(
-  'o primeiro parágrafo da abertura é literal',
-  copy.intro[0] === 'Você já respondeu tudo o que eu precisava saber sobre a sua loja. Agora tem um outro tipo de pergunta — são as coisas que **só você pode decidir**, porque mudam quanto você ganha em cada venda e o que você vai prometer para as suas clientes.',
+  'a abertura abre dizendo que estas são as escolhas dela',
+  copy.intro[0].startsWith('Você já respondeu tudo o que eu precisava saber sobre a sua loja.')
+    && copy.intro[0].includes('**só você pode decidir**'),
   copy.intro[0],
 );
 // A ÚNICA divergência autorizada em relação ao documento: 13 perguntas + 3
@@ -230,21 +238,21 @@ check(
 // ela na primeira tela.
 check(
   'a abertura conta os três números do Anexo A (única divergência autorizada)',
-  copy.intro[1] === 'São 13 perguntas, mais três números no fim. A maioria é de marcar uma opção. Se nenhuma servir, tem sempre um espaço para escrever do seu jeito.',
-  copy.intro[1],
+  abertura.includes('São 13 perguntas, mais três números no fim.'),
+  abertura,
 );
 check('a abertura promete que fica salvo',
-  copy.intro[2] === 'Não precisa responder tudo de uma vez — o que você marcar fica salvo.',
-  copy.intro[2]);
+  abertura.includes('Não precisa responder tudo de uma vez — o que você marcar fica salvo.'),
+  abertura);
 check(
   'a abertura explica a marca de trava com as MESMAS palavras da pílula',
-  copy.intro[3].includes(`**${copy.marcaTrava}**`),
-  copy.intro[3],
+  abertura.includes(`**${copy.marcaTrava}**`),
+  abertura,
 );
 check('a marca de trava é "precisa antes de abrir"', copy.marcaTrava === 'precisa antes de abrir', copy.marcaTrava);
-check('a abertura termina no convite para conversar por telefone',
-  copy.intro[4] === 'Se bater dúvida em alguma, marca "quero conversar sobre isso" e a gente resolve por telefone.',
-  copy.intro[4]);
+check('a abertura oferece a saída de conversar por telefone',
+  abertura.includes('marca "quero conversar sobre isso" e a gente resolve por telefone.'),
+  abertura);
 
 check('o encerramento se chama "Terminou?"', copy.encerramento.titulo === 'Terminou?', copy.encerramento.titulo);
 check('o encerramento tem dois parágrafos', copy.encerramento.paragrafos.length === 2);

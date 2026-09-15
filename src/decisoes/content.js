@@ -534,17 +534,20 @@ export const copy = {
   sobretitulo: 'De Maria · joias em prata 925',
   titulo: 'Ligia, agora são as suas escolhas',
   intro: [
-    'Você já respondeu tudo o que eu precisava saber sobre a sua loja. Agora tem um outro tipo de pergunta — são as coisas que **só você pode decidir**, porque mudam quanto você ganha em cada venda e o que você vai prometer para as suas clientes.',
+    // Encurtado a pedido do João em 15/09/2026: cinco parágrafos viraram três.
+    // Nada de informação saiu — o "fica salvo", a explicação da pílula e a saída
+    // do "quero conversar sobre isso" continuam todos aqui, só que juntos. O que
+    // some antes da primeira pergunta é rolagem, e esta página é respondida no
+    // celular entre atendimentos.
+    'Você já respondeu tudo o que eu precisava saber sobre a sua loja. Agora são as coisas que **só você pode decidir** — as que mudam quanto você ganha em cada venda e o que você vai prometer para as suas clientes.',
     // ÚNICA divergência autorizada do documento. O original diz "São 13
     // perguntas.", contando só as Partes 1–5; a página tem 16 campos, porque o
     // Anexo A entrou junto. Prometer 13 e mostrar 16 é a página mentindo para
     // ela logo na abertura.
-    'São 13 perguntas, mais três números no fim. A maioria é de marcar uma opção. Se nenhuma servir, tem sempre um espaço para escrever do seu jeito.',
-    'Não precisa responder tudo de uma vez — o que você marcar fica salvo.',
+    'São 13 perguntas, mais três números no fim. A maioria é de marcar uma opção; se nenhuma servir, tem espaço para escrever do seu jeito. Não precisa responder tudo de uma vez — o que você marcar fica salvo.',
     // É esta frase que explica a pílula das perguntas travadas. O negrito aqui
     // e o texto da pílula são a MESMA string (MARCA_TRAVA).
-    `Algumas estão marcadas com **${MARCA_TRAVA}**: são as que seguram o lançamento da loja. As outras dá para responder com calma.`,
-    'Se bater dúvida em alguma, marca "quero conversar sobre isso" e a gente resolve por telefone.',
+    `Algumas estão marcadas com **${MARCA_TRAVA}**: são as que seguram o lançamento da loja. Se bater dúvida em alguma, marca "quero conversar sobre isso" e a gente resolve por telefone.`,
   ],
   marcaTrava: MARCA_TRAVA,
   revisao: {
