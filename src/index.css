@@ -44,7 +44,7 @@ p {
 
 /* ----------------------------------------------------------------------
    Escopo tipográfico das páginas de cliente
-   (/proposta-marcelo, /brief e /perguntas-ligia)
+   (/proposta-marcelo, /brief, /perguntas-ligia e /decisoes-ligia)
 
    As regras de elemento acima moram FORA de qualquer @layer, e no Tailwind
    v4 as utilidades moram dentro de `@layer utilities`. Declaração sem layer
@@ -65,25 +65,27 @@ p {
    ---------------------------------------------------------------------- */
 .proposta-page :is(h1, h2, h3, h4, p),
 .brief-page :is(h1, h2, h3, h4, p),
-.perguntas-page :is(h1, h2, h3, h4, p) {
+.perguntas-page :is(h1, h2, h3, h4, p),
+.decisoes-page :is(h1, h2, h3, h4, p) {
   font-size: revert-layer;
   font-weight: revert-layer;
   line-height: revert-layer;
 }
 
 /* ----------------------------------------------------------------------
-   Escopo visual de /perguntas-ligia
+   Escopo visual de /perguntas-ligia e /decisoes-ligia
 
-   O brief desta página pede a system font stack da Apple e PROÍBE Google
-   Fonts nela. Só que o topo deste arquivo aplica Poppins com um seletor
+   O brief destas páginas pede a system font stack da Apple e PROÍBE Google
+   Fonts nelas. Só que o topo deste arquivo aplica Poppins com um seletor
    universal (`*`, especificidade 0,0,0) e o site inteiro depende do @import
    — remover não é opção. A saída é escopo: `.perguntas-page *` tem
    especificidade 0,1,0 e ganha do universal sem tocar em nenhuma outra
-   página.
+   página. /decisoes-ligia entrou nas mesmas listas: é a mesma cara, a mesma
+   cliente, e duas cópias das mesmas regras divergiriam na primeira edição.
 
    Mesma lógica para o fundo. O `body` global é branco; aqui o brief pede
-   #FBFBFD. `.perguntas-root` é posta em document.documentElement pelo
-   componente, e existe por dois motivos: (1) sem cor na raiz, o overscroll
+   #FBFBFD. `.perguntas-root` / `.decisoes-root` são postas em
+   document.documentElement pelo componente, e existe por dois motivos: (1) sem cor na raiz, o overscroll
    do iOS mostra uma faixa branca acima do #FBFBFD; (2) `color-scheme: light`
    precisa estar na raiz para o aparelho dela não inverter as cores sozinho,
    que é exigência explícita do brief ("comprometa-se com o tema claro").
@@ -92,18 +94,23 @@ p {
    JSX, que voltaram a funcionar por causa do revert-layer acima.
    ---------------------------------------------------------------------- */
 .perguntas-page,
-.perguntas-page * {
+.perguntas-page *,
+.decisoes-page,
+.decisoes-page * {
   font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
 }
 
-.perguntas-page {
+.perguntas-page,
+.decisoes-page {
   background-color: #FBFBFD;
   color: #1D1D1F;
   min-height: 100vh;
 }
 
 .perguntas-root,
-.perguntas-root body {
+.perguntas-root body,
+.decisoes-root,
+.decisoes-root body {
   background-color: #FBFBFD;
   color-scheme: light;
 }

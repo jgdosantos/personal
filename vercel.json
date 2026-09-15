@@ -26,6 +26,15 @@
                     "value": "noindex, nofollow"
                 }
             ]
+        },
+        {
+            "source": "/decisoes-ligia(.*)",
+            "headers": [
+                {
+                    "key": "X-Robots-Tag",
+                    "value": "noindex, nofollow"
+                }
+            ]
         }
     ],
     "rewrites": [
