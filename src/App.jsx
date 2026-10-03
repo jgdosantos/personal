@@ -665,8 +665,7 @@ const App = () => {
     <div className="min-h-screen bg-white">
       {/* Responsive Header */}
       <header className="fixed top-0 left-0 w-full z-50 px-6 py-4 md:px-8 md:py-8 flex justify-between items-center bg-white/80 backdrop-blur-sm md:bg-transparent">
-        {/* Brand mark. The video is the same asset the About section plays, so
-            the browser serves the second instance straight from cache. */}
+        {/* Brand mark: JG wordmark plus the small looping memoji. */}
         <div className="flex-1 flex justify-start">
           <a href="#" className="flex items-center gap-1.5 md:gap-3" aria-label={staticData.name}>
             <span className="text-black text-base md:text-xl font-black tracking-tighter leading-none">
@@ -818,32 +817,21 @@ const App = () => {
 
         <div className="max-w-7xl mx-auto px-6">
           <div className="flex flex-col md:flex-row items-center gap-16 md:gap-24">
-            {/* Memoji with 'Anti-Gravity' Parallax */}
+            {/* Photo with 'Anti-Gravity' Parallax */}
             <div
               className="w-full md:w-5/12 flex-shrink-0"
               style={{ transform: `translateY(${Math.max(0, (scrollY - 200) * -0.15)}px)` }}
             >
               <AnimatedSection animation="animate-on-scroll animate-fade-left">
-                <video
-                  autoPlay
-                  loop
-                  muted
-                  playsInline
-                  aria-label="João Gabriel"
-                  className="w-full max-w-[380px] h-auto mx-auto"
-                >
-                  {/* Order matters: Safari plays VP9 but ignores its alpha channel,
-                      so it has to match the HEVC-with-alpha .mov first. Chrome and
-                      Firefox don't claim video/quicktime and fall through to WebM. */}
-                  <source
-                    src={`${import.meta.env.BASE_URL}memoji.mov`}
-                    type='video/quicktime; codecs="hvc1"'
-                  />
-                  <source
-                    src={`${import.meta.env.BASE_URL}memoji.webm`}
-                    type="video/webm"
-                  />
-                </video>
+                <img
+                  src={`${import.meta.env.BASE_URL}joao.jpg`}
+                  alt="João Gabriel"
+                  width={1000}
+                  height={1500}
+                  loading="lazy"
+                  decoding="async"
+                  className="w-full max-w-[380px] h-auto mx-auto rounded-3xl object-cover"
+                />
               </AnimatedSection>
             </div>
 
