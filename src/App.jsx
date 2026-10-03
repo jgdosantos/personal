@@ -74,8 +74,7 @@ const translations = {
       roles: {
         fba: 'Marca & Presença Digital',
         bkdg: 'Produto & UX',
-        eduardobraz: 'Site Pessoal',
-        sniffer: 'PMO'
+        eduardobraz: 'Site Pessoal'
       }
     },
     timeline: {
@@ -186,8 +185,7 @@ const translations = {
       roles: {
         fba: 'Brand & Digital Presence',
         bkdg: 'Product & UX',
-        eduardobraz: 'Personal Site',
-        sniffer: 'PMO'
+        eduardobraz: 'Personal Site'
       }
     },
     timeline: {
@@ -293,7 +291,8 @@ const staticData = {
     { slug: "fba", name: "fba.", domain: "fba.center", url: "https://fba.center", image: "cases/fba.jpg" },
     { slug: "bkdg", name: "BKDG", domain: "bkdg.co", url: "https://bkdg.co", image: "cases/bkdg.jpg" },
     { slug: "eduardobraz", name: "Eduardo Braz", domain: "eduardobraz.com", url: "https://eduardobraz.com", image: "cases/eduardobraz.jpg" },
-    { slug: "sniffer", name: "Sniffer", domain: "sniffer.network", url: "https://sniffer.network", image: "cases/sniffer.jpg" }
+    { slug: "sniffer", name: "Sniffer", domain: "sniffer.network", url: "https://sniffer.network", image: "cases/sniffer.jpg" },
+    { slug: "proxxy", name: "Proxxy Tech", domain: "proxxytech.com.br", url: "https://proxxytech.com.br", image: "cases/proxxy.jpg" }
   ]
 };
 
@@ -512,9 +511,11 @@ const WorkSection = ({ t }) => {
                 <h3 className="text-2xl md:text-3xl font-black text-black tracking-tighter leading-tight truncate">
                   {project.name}
                 </h3>
-                <p className="mt-1 text-gray-400 text-[10px] md:text-xs font-semibold uppercase tracking-[0.2em]">
-                  {t.work.roles[project.slug]}
-                </p>
+                {t.work.roles[project.slug] && (
+                  <p className="mt-1 text-gray-400 text-[10px] md:text-xs font-semibold uppercase tracking-[0.2em]">
+                    {t.work.roles[project.slug]}
+                  </p>
+                )}
               </div>
               <span className="shrink-0 flex items-center gap-1.5 text-gray-500 text-[10px] md:text-xs font-semibold uppercase tracking-[0.15em] group-hover:text-black transition-colors duration-300 pt-1">
                 {t.work.visit}
