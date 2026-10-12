@@ -15,7 +15,7 @@
 
 const SEGREDO = 'cole-aqui-o-mesmo-valor-do-PESQUISA_AIRBNB_SECRET';
 const ABA = 'Respostas';
-const CABECALHO = ['Quando', 'Nome', 'Contato', 'Imóveis', 'Interesse', 'Quanto pagaria'];
+const CABECALHO = ['Quando', 'Nome', 'Contato', 'Imóveis', 'Interesse', 'Paga hoje por fotos'];
 
 function doGet() {
   return json({ ok: true, ping: true });
@@ -45,7 +45,7 @@ function doPost(e) {
       seguro(body.contato),
       seguro(body.imoveis),
       seguro(body.interesse),
-      seguro(body.pagaria),
+      seguro(body.fotos),
     ]);
     return json({ ok: true });
   } catch (err) {

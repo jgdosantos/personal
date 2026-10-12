@@ -110,7 +110,7 @@ export default async function handler(req, res) {
           contato: campos.contato,
           imoveis: campos.imoveis,
           interesse: campos.interesse,
-          pagaria: campos.pagaria,
+          fotos: campos.fotos,
         }),
       });
       texto = await resposta.text();

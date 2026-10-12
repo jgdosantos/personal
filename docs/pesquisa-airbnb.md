@@ -1,6 +1,6 @@
 # /pesquisa-airbnb — formulário que cai numa planilha do Google
 
-A rota `www.joaogsantos.com/pesquisa-airbnb` mostra um formulário de uma tela só (nome, contato e 3 perguntas de escolha) para validar se gestoras e anfitriões de imóveis de temporada querem um vídeo 3D gerado por IA e quanto pagariam. Quando a pessoa toca em *Enviar*, `POST /api/pesquisa-airbnb` valida e repassa para um Apps Script, que grava uma linha na aba **Respostas** da planilha.
+A rota `www.joaogsantos.com/pesquisa-airbnb` mostra um formulário de uma tela só (nome, contato e 3 perguntas de escolha) para validar se gestoras e anfitriões de imóveis de temporada querem um vídeo 3D gerado por IA e quanto já gastam hoje com fotos profissionais. Quando a pessoa toca em *Enviar*, `POST /api/pesquisa-airbnb` valida e repassa para um Apps Script, que grava uma linha na aba **Respostas** da planilha.
 
 O código do Apps Script está em [`apps-script-pesquisa-airbnb.gs`](./apps-script-pesquisa-airbnb.gs), ao lado deste arquivo. Não edite nada além do valor de `SEGREDO`.
 
@@ -72,7 +72,7 @@ O `-L` é obrigatório. Sem ele você vê o 302 e acha que quebrou.
 
 ```bash
 curl -sL -H "Content-Type: application/json" \
-  -d '{"segredo":"<PESQUISA_AIRBNB_SECRET>","nome":"Teste","contato":"teste@exemplo.com","imoveis":"1","interesse":"Quero","pagaria":"Até R$ 100"}' \
+  -d '{"segredo":"<PESQUISA_AIRBNB_SECRET>","nome":"Teste","contato":"teste@exemplo.com","imoveis":"1","interesse":"Quero","fotos":"Até R$ 200"}' \
   "<URL do /exec>"
 # esperado: {"ok":true} — e uma linha nova na aba "Respostas"
 ```
@@ -84,7 +84,7 @@ curl -sL -H "Content-Type: application/json" \
 ```bash
 curl -s -X POST https://www.joaogsantos.com/api/pesquisa-airbnb \
   -H 'Content-Type: application/json' \
-  -d '{"nome":"Teste","contato":"teste@exemplo.com","imoveis":"1","interesse":"Quero","pagaria":"Até R$ 100"}'
+  -d '{"nome":"Teste","contato":"teste@exemplo.com","imoveis":"1","interesse":"Quero","fotos":"Até R$ 200"}'
 # esperado: {"ok":true} — e outra linha na aba "Respostas"
 ```
 
@@ -119,7 +119,7 @@ O sintoma é cruel: o código na tela está certo e o comportamento no ar é o a
 
 ## Como a aba funciona
 
-A aba **Respostas** é criada sozinha no primeiro envio, com o cabeçalho `Quando | Nome | Contato | Imóveis | Interesse | Quanto pagaria` em negrito e congelado. Cada envio acrescenta uma linha.
+A aba **Respostas** é criada sozinha no primeiro envio, com o cabeçalho `Quando | Nome | Contato | Imóveis | Interesse | Paga hoje por fotos` em negrito e congelado. Cada envio acrescenta uma linha.
 
 Valor que começa com `=`, `+`, `-` ou `@` é gravado com um apóstrofo na frente, para o Sheets não ler como fórmula. Um WhatsApp digitado como `+55 11 9...` aparece normal na célula, e o apóstrofo só aparece na barra de fórmula.
 

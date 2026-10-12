@@ -64,7 +64,7 @@ const check = (name, cond, extra = '') => {
 
 const corpoValido = (extra = {}) => ({
   nome: NOME_SONDA, contato: CONTATO_SONDA,
-  imoveis: '2 a 5', interesse: 'Quero muito', pagaria: 'R$ 500 a 1.000',
+  imoveis: '2 a 5', interesse: 'Quero muito', fotos: 'R$ 200 a 400',
   site: '', ...extra,
 });
 
@@ -89,32 +89,24 @@ console.error = (...args) => { logCapturado.push(args.map((a) => String(a)).join
       opcoes: ['1', '2 a 5', '6 a 20', 'Mais de 20'] },
     { id: 'interesse', pergunta: 'O que você acha de um vídeo 3D para o seu negócio?',
       opcoes: ['Quero muito', 'Quero', 'Não faz diferença', 'Não quero', 'Jamais compraria'] },
-    { id: 'pagaria', pergunta: 'Quanto você pagaria por vídeo de cada imóvel?',
-      opcoes: ['Menos de R$ 500', 'R$ 500 a 1.000', 'R$ 1.000 a 1.500', 'R$ 1.500 a 2.000',
-        'R$ 2.000 a 3.000', 'Mais de R$ 3.000'],
-      mostrarSe: { interesse: ['Quero muito', 'Quero', 'Não faz diferença'] } },
+    { id: 'fotos', pergunta: 'Quanto você paga hoje por fotos profissionais de um imóvel?',
+      opcoes: ['Não pago (eu mesmo tiro)', 'Até R$ 200', 'R$ 200 a 400', 'R$ 400 a 700', 'Mais de R$ 700'] },
   ];
   check('ESCOLHAS é idêntica ao formulario-validacao.md',
     JSON.stringify(ESCOLHAS) === JSON.stringify(literal), JSON.stringify(ESCOLHAS));
   check('LIMITES é 100 e 150', LIMITES.nome === 100 && LIMITES.contato === 150, JSON.stringify(LIMITES));
 }
 {
-  // Preço só para quem não rejeitou o produto.
+  // O gasto com fotos é perguntado a todos, qualquer que seja o interesse.
   const base = { nome: 'Ana', contato: 'ana@x.com', imoveis: '1' };
-  for (const interesse of ['Quero muito', 'Quero', 'Não faz diferença']) {
+  for (const interesse of ['Quero muito', 'Quero', 'Não faz diferença', 'Não quero', 'Jamais compraria']) {
     const sem = validar({ ...base, interesse });
-    check(`"${interesse}" exige o preço`, sem.ok === false, JSON.stringify(sem));
-    const com = validar({ ...base, interesse, pagaria: 'R$ 1.500 a 2.000' });
-    check(`"${interesse}" grava o preço`, com.ok === true && com.dados.pagaria === 'R$ 1.500 a 2.000', JSON.stringify(com));
+    check(`"${interesse}" exige o gasto com fotos`, sem.ok === false, JSON.stringify(sem));
+    const com = validar({ ...base, interesse, fotos: 'Até R$ 200' });
+    check(`"${interesse}" grava o gasto com fotos`, com.ok === true && com.dados.fotos === 'Até R$ 200', JSON.stringify(com));
   }
-  for (const interesse of ['Não quero', 'Jamais compraria']) {
-    const sem = validar({ ...base, interesse });
-    check(`"${interesse}" dispensa o preço`, sem.ok === true && sem.dados.pagaria === '', JSON.stringify(sem));
-    const com = validar({ ...base, interesse, pagaria: 'Mais de R$ 3.000' });
-    check(`"${interesse}" descarta preço enviado`, com.ok === true && com.dados.pagaria === '', JSON.stringify(com));
-  }
-  check('"Não pagaria" não existe mais',
-    validar({ ...base, interesse: 'Quero', pagaria: 'Não pagaria' }).ok === false);
+  check('a pergunta antiga "pagaria" não existe mais',
+    validar({ ...base, interesse: 'Quero', pagaria: 'Menos de R$ 500' }).ok === false);
 }
 for (const entrada of [null, [], 'texto', 42]) {
   const r = validar(entrada);
@@ -267,7 +259,7 @@ check('o segredo não vai em header',
   !JSON.stringify(chamada.headers || {}).includes(SEGREDO_LIMPO), JSON.stringify(chamada.headers));
 check('o segredo não vai na querystring', !chamada.url.includes(SEGREDO_LIMPO), chamada.url);
 check('as chaves enviadas são exatamente as que o doPost do .gs lê',
-  Object.keys(enviado).sort().join(',') === ['segredo', 'nome', 'contato', 'imoveis', 'interesse', 'pagaria'].sort().join(','),
+  Object.keys(enviado).sort().join(',') === ['segredo', 'nome', 'contato', 'imoveis', 'interesse', 'fotos'].sort().join(','),
   Object.keys(enviado).join(','));
 check('chave inventada pelo cliente não passa', !('chaveInventada' in enviado));
 check('o honeypot não passa para a planilha', !('site' in enviado));
@@ -394,7 +386,7 @@ check('a rota não usa as variáveis de outras planilhas',
   );
   const gsValido = (extra = {}) => ({
     segredo: SEGREDO_GS, nome: 'Maria', contato: 'maria@exemplo.com',
-    imoveis: '2 a 5', interesse: 'Quero', pagaria: 'Menos de R$ 500', ...extra,
+    imoveis: '2 a 5', interesse: 'Quero', fotos: 'Até R$ 200', ...extra,
   });
 
   check('o .gs tem um SEGREDO a trocar', SEGREDO_GS.length > 0);
@@ -408,15 +400,15 @@ check('a rota não usa as variáveis de outras planilhas',
   check("cria a aba 'Respostas'", Boolean(aba));
   check('cria a aba uma vez só', abasCriadas === 1, String(abasCriadas));
   check('cabeçalho certo na primeira linha',
-    aba && JSON.stringify(aba.linhas[0]) === JSON.stringify(['Quando', 'Nome', 'Contato', 'Imóveis', 'Interesse', 'Quanto pagaria']),
+    aba && JSON.stringify(aba.linhas[0]) === JSON.stringify(['Quando', 'Nome', 'Contato', 'Imóveis', 'Interesse', 'Paga hoje por fotos']),
     aba && JSON.stringify(aba.linhas[0]));
   check('cabeçalho em negrito', aba && aba.negrito.includes('bold'));
   check('cabeçalho congelado', aba && aba.congeladas === 1, aba && String(aba.congeladas));
   check('1 linha de dados depois do cabeçalho', aba && aba.linhas.length === 2, aba && String(aba.linhas.length));
   const linha = aba && aba.linhas[1];
-  check('a linha é [Date, nome, contato, imoveis, interesse, pagaria]',
+  check('a linha é [Date, nome, contato, imoveis, interesse, fotos]',
     linha && Object.prototype.toString.call(linha[0]) === '[object Date]'
-      && JSON.stringify(linha.slice(1)) === JSON.stringify(['Maria', 'maria@exemplo.com', '2 a 5', 'Quero', 'Menos de R$ 500']),
+      && JSON.stringify(linha.slice(1)) === JSON.stringify(['Maria', 'maria@exemplo.com', '2 a 5', 'Quero', 'Até R$ 200']),
     JSON.stringify(linha));
 
   r = doPost(gsValido({ nome: 'Joana' }));
@@ -434,7 +426,7 @@ check('a rota não usa as variáveis de outras planilhas',
   check('sem segredo devolve nao autorizado', r.ok === false && r.erro === 'nao autorizado');
 
   doPost(gsValido({
-    nome: '=HYPERLINK("x")', contato: '+55 11 99999-0000', imoveis: '-1', interesse: '@a', pagaria: '2 a 5',
+    nome: '=HYPERLINK("x")', contato: '+55 11 99999-0000', imoveis: '-1', interesse: '@a', fotos: '2 a 5',
   }));
   const perigosa = aba.linhas[aba.linhas.length - 1];
   check("nome '=HYPERLINK(...)' ganha apóstrofo", perigosa[1] === '\'=HYPERLINK("x")', perigosa[1]);

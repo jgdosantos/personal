@@ -5,7 +5,7 @@ import { ESCOLHAS, LIMITES, validar, visivel } from '../../shared/pesquisaAirbnb
 // sem etapas. As perguntas de escolha vêm de shared/pesquisaAirbnb.js, a mesma
 // lista que a API usa como allowlist.
 
-const VAZIO = { nome: '', contato: '', imoveis: '', interesse: '', pagaria: '', site: '' };
+const VAZIO = { nome: '', contato: '', imoveis: '', interesse: '', fotos: '', site: '' };
 
 const CAMPO =
   'block w-full border border-[#D2D2D7] bg-[#FFFFFF] px-4 py-3 text-[17px] text-[#1D1D1F] transition-colors duration-200 focus:border-[#0071E3] focus:shadow-[0_0_0_4px_rgba(0,113,227,0.15)] focus:outline-none';

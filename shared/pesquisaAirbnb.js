@@ -24,20 +24,17 @@ export const ESCOLHAS = [
     opcoes: ['Quero muito', 'Quero', 'Não faz diferença', 'Não quero', 'Jamais compraria'],
   },
   {
-    id: 'pagaria',
-    pergunta: 'Quanto você pagaria por vídeo de cada imóvel?',
+    id: 'fotos',
+    pergunta: 'Quanto você paga hoje por fotos profissionais de um imóvel?',
     opcoes: [
-      'Menos de R$ 500',
-      'R$ 500 a 1.000',
-      'R$ 1.000 a 1.500',
-      'R$ 1.500 a 2.000',
-      'R$ 2.000 a 3.000',
-      'Mais de R$ 3.000',
+      'Não pago (eu mesmo tiro)',
+      'Até R$ 200',
+      'R$ 200 a 400',
+      'R$ 400 a 700',
+      'Mais de R$ 700',
     ],
-    // Só pergunta preço a quem não rejeitou o produto. "Não quero" e "Jamais
-    // compraria" pulam a pergunta: um chute de preço de quem não compraria
-    // poluiria a faixa de quem compraria.
-    mostrarSe: { interesse: ['Quero muito', 'Quero', 'Não faz diferença'] },
+    // Gasto que já existe, em vez de "quanto pagaria": preço hipotético quase
+    // não prevê compra. Vale para todo mundo, inclusive quem rejeitou o vídeo.
   },
 ];
 
