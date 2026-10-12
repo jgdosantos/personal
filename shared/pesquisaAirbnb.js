@@ -26,9 +26,29 @@ export const ESCOLHAS = [
   {
     id: 'pagaria',
     pergunta: 'Quanto você pagaria por vídeo de cada imóvel?',
-    opcoes: ['Não pagaria', 'Até R$ 100', 'R$ 100 a 200', 'R$ 200 a 400', 'Mais de R$ 400'],
+    opcoes: [
+      'Até R$ 100',
+      'R$ 100 a 200',
+      'R$ 200 a 400',
+      'R$ 400 a 600',
+      'R$ 600 a 800',
+      'R$ 800 a 1.500',
+      'Mais de R$ 1.500',
+    ],
+    // Só pergunta preço a quem não rejeitou o produto. "Não quero" e "Jamais
+    // compraria" pulam a pergunta: um chute de preço de quem não compraria
+    // poluiria a faixa de quem compraria.
+    mostrarSe: { interesse: ['Quero muito', 'Quero', 'Não faz diferença'] },
   },
 ];
+
+/** A pergunta aparece para estas respostas? Sem `mostrarSe`, sempre aparece. */
+export function visivel(escolha, respostas) {
+  if (!escolha.mostrarSe) return true;
+  return Object.entries(escolha.mostrarSe).every(([campo, aceitas]) =>
+    aceitas.includes(respostas[campo]),
+  );
+}
 
 const texto = (v, max) => (typeof v === 'string' ? v.trim().slice(0, max) : '');
 
@@ -47,7 +67,14 @@ export function validar(entrada) {
   if (!nome || !contato) return { ok: false, erro: 'preencha nome e contato' };
 
   const dados = { nome, contato };
-  for (const { id, opcoes } of ESCOLHAS) {
+  for (const escolha of ESCOLHAS) {
+    const { id, opcoes } = escolha;
+    // Pergunta escondida grava vazio, venha o que vier do cliente. ESCOLHAS
+    // está em ordem, então `dados` já tem as respostas de que ela depende.
+    if (!visivel(escolha, dados)) {
+      dados[id] = '';
+      continue;
+    }
     const valor = entrada[id];
     if (typeof valor !== 'string' || !opcoes.includes(valor)) {
       return { ok: false, erro: 'resposta inválida' };

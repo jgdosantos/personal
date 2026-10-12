@@ -90,11 +90,31 @@ console.error = (...args) => { logCapturado.push(args.map((a) => String(a)).join
     { id: 'interesse', pergunta: 'O que você acha de um vídeo 3D para o seu negócio?',
       opcoes: ['Quero muito', 'Quero', 'Não faz diferença', 'Não quero', 'Jamais compraria'] },
     { id: 'pagaria', pergunta: 'Quanto você pagaria por vídeo de cada imóvel?',
-      opcoes: ['Não pagaria', 'Até R$ 100', 'R$ 100 a 200', 'R$ 200 a 400', 'Mais de R$ 400'] },
+      opcoes: ['Até R$ 100', 'R$ 100 a 200', 'R$ 200 a 400', 'R$ 400 a 600', 'R$ 600 a 800',
+        'R$ 800 a 1.500', 'Mais de R$ 1.500'],
+      mostrarSe: { interesse: ['Quero muito', 'Quero', 'Não faz diferença'] } },
   ];
   check('ESCOLHAS é idêntica ao formulario-validacao.md',
     JSON.stringify(ESCOLHAS) === JSON.stringify(literal), JSON.stringify(ESCOLHAS));
   check('LIMITES é 100 e 150', LIMITES.nome === 100 && LIMITES.contato === 150, JSON.stringify(LIMITES));
+}
+{
+  // Preço só para quem não rejeitou o produto.
+  const base = { nome: 'Ana', contato: 'ana@x.com', imoveis: '1' };
+  for (const interesse of ['Quero muito', 'Quero', 'Não faz diferença']) {
+    const sem = validar({ ...base, interesse });
+    check(`"${interesse}" exige o preço`, sem.ok === false, JSON.stringify(sem));
+    const com = validar({ ...base, interesse, pagaria: 'R$ 800 a 1.500' });
+    check(`"${interesse}" grava o preço`, com.ok === true && com.dados.pagaria === 'R$ 800 a 1.500', JSON.stringify(com));
+  }
+  for (const interesse of ['Não quero', 'Jamais compraria']) {
+    const sem = validar({ ...base, interesse });
+    check(`"${interesse}" dispensa o preço`, sem.ok === true && sem.dados.pagaria === '', JSON.stringify(sem));
+    const com = validar({ ...base, interesse, pagaria: 'Mais de R$ 1.500' });
+    check(`"${interesse}" descarta preço enviado`, com.ok === true && com.dados.pagaria === '', JSON.stringify(com));
+  }
+  check('"Não pagaria" não existe mais',
+    validar({ ...base, interesse: 'Quero', pagaria: 'Não pagaria' }).ok === false);
 }
 for (const entrada of [null, [], 'texto', 42]) {
   const r = validar(entrada);

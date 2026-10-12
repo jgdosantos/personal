@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { ESCOLHAS, LIMITES, validar } from '../../shared/pesquisaAirbnb.js';
+import { ESCOLHAS, LIMITES, validar, visivel } from '../../shared/pesquisaAirbnb.js';
 
 // Formulário de validação do vídeo 3D para imóveis de temporada. Uma tela só,
 // sem etapas. As perguntas de escolha vêm de shared/pesquisaAirbnb.js, a mesma
@@ -56,7 +56,12 @@ export default function PesquisaAirbnb() {
   }, [estado]);
 
   const mudar = (campo, valor) => {
-    setForm((f) => ({ ...f, [campo]: valor }));
+    setForm((f) => {
+      const novo = { ...f, [campo]: valor };
+      // Resposta de pergunta que acabou de sumir não pode ficar guardada.
+      for (const escolha of ESCOLHAS) if (!visivel(escolha, novo)) novo[escolha.id] = '';
+      return novo;
+    });
     setEstado((e) => (e === 'erro' ? 'parado' : e));
   };
 
@@ -142,7 +147,7 @@ export default function PesquisaAirbnb() {
                 />
               </div>
 
-              {ESCOLHAS.map(({ id, pergunta, opcoes }) => (
+              {ESCOLHAS.filter((escolha) => visivel(escolha, form)).map(({ id, pergunta, opcoes }) => (
                 <fieldset key={id} className="border-0 p-0" style={{ marginInline: 0, marginBottom: 0 }}>
                   <legend className="mb-3 p-0 text-[17px] font-medium text-[#1D1D1F]">{pergunta}</legend>
                   <div className="flex flex-col gap-2">
