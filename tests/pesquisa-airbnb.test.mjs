@@ -325,5 +325,112 @@ for (const termo of ['x-forwarded-for', 'x-real-ip', 'x-vercel-ip', 'user-agent'
 check('a rota não usa as variáveis de outras planilhas',
   !semComentario.includes('perguntas_') && !semComentario.includes('sheets_'));
 
+// ------------------------------------------------------------- Apps Script
+// O .gs roda num vm do Node com stubs das três APIs do Google que ele usa
+// (ContentService, LockService, SpreadsheetApp). As `function` de topo viram
+// propriedades do contexto; `const` de topo não, por isso o segredo é lido do
+// texto do arquivo.
+{
+  const vm = await import('node:vm');
+  const fonteGs = fs.readFileSync(new URL('../docs/apps-script-pesquisa-airbnb.gs', import.meta.url), 'utf8');
+  const SEGREDO_GS = (/const SEGREDO = '([^']*)'/.exec(fonteGs) || [])[1] || '';
+
+  const lock = { espera: 0, libera: 0 };
+  const abas = new Map(); // nome -> { linhas, negrito, congeladas }
+  let abasCriadas = 0;
+
+  const novaAba = () => {
+    const aba = { linhas: [], negrito: [], congeladas: 0 };
+    aba.appendRow = (linha) => { aba.linhas.push(linha); };
+    aba.getRange = () => {
+      const r = { setFontWeight: (peso) => { aba.negrito.push(peso); return r; } };
+      return r;
+    };
+    aba.setFrozenRows = (n) => { aba.congeladas = n; };
+    return aba;
+  };
+  const planilha = {
+    getSheetByName: (nome) => abas.get(nome) || null,
+    insertSheet: (nome) => { const aba = novaAba(); abas.set(nome, aba); abasCriadas++; return aba; },
+  };
+
+  const ctx = vm.createContext({
+    ContentService: {
+      createTextOutput: (s) => ({ setMimeType: () => ({ conteudo: s }) }),
+      MimeType: { JSON: 'JSON' },
+    },
+    LockService: {
+      getScriptLock: () => ({
+        waitLock: () => { lock.espera++; },
+        releaseLock: () => { lock.libera++; },
+      }),
+    },
+    SpreadsheetApp: { getActiveSpreadsheet: () => planilha },
+  });
+  vm.runInContext(fonteGs, ctx);
+
+  const doPost = (corpo) => JSON.parse(
+    ctx.doPost({ postData: { contents: typeof corpo === 'string' ? corpo : JSON.stringify(corpo) } }).conteudo,
+  );
+  const gsValido = (extra = {}) => ({
+    segredo: SEGREDO_GS, nome: 'Maria', contato: 'maria@exemplo.com',
+    imoveis: '2 a 5', interesse: 'Quero', pagaria: 'Até R$ 100', ...extra,
+  });
+
+  check('o .gs tem um SEGREDO a trocar', SEGREDO_GS.length > 0);
+  check('o .gs não cita PERGUNTAS_ nem SHEETS_', !/PERGUNTAS_|SHEETS_/.test(fonteGs));
+  check('doGet devolve { ok:true, ping:true }',
+    JSON.stringify(JSON.parse(ctx.doGet().conteudo)) === '{"ok":true,"ping":true}');
+
+  let r = doPost(gsValido());
+  check('doPost válido devolve { ok:true }', r.ok === true && r.ping === undefined, JSON.stringify(r));
+  const aba = abas.get('Respostas');
+  check("cria a aba 'Respostas'", Boolean(aba));
+  check('cria a aba uma vez só', abasCriadas === 1, String(abasCriadas));
+  check('cabeçalho certo na primeira linha',
+    aba && JSON.stringify(aba.linhas[0]) === JSON.stringify(['Quando', 'Nome', 'Contato', 'Imóveis', 'Interesse', 'Quanto pagaria']),
+    aba && JSON.stringify(aba.linhas[0]));
+  check('cabeçalho em negrito', aba && aba.negrito.includes('bold'));
+  check('cabeçalho congelado', aba && aba.congeladas === 1, aba && String(aba.congeladas));
+  check('1 linha de dados depois do cabeçalho', aba && aba.linhas.length === 2, aba && String(aba.linhas.length));
+  const linha = aba && aba.linhas[1];
+  check('a linha é [Date, nome, contato, imoveis, interesse, pagaria]',
+    linha && Object.prototype.toString.call(linha[0]) === '[object Date]'
+      && JSON.stringify(linha.slice(1)) === JSON.stringify(['Maria', 'maria@exemplo.com', '2 a 5', 'Quero', 'Até R$ 100']),
+    JSON.stringify(linha));
+
+  r = doPost(gsValido({ nome: 'Joana' }));
+  check('segundo doPost devolve { ok:true }', r.ok === true);
+  check('segundo doPost não recria a aba', abasCriadas === 1, String(abasCriadas));
+  check('segundo doPost só acrescenta 1 linha, sem repetir o cabeçalho',
+    aba.linhas.length === 3 && aba.linhas[2][1] === 'Joana', String(aba.linhas.length));
+
+  const antes = aba.linhas.length;
+  r = doPost(gsValido({ segredo: 'errado' }));
+  check("segredo errado devolve { ok:false, erro:'nao autorizado' }",
+    r.ok === false && r.erro === 'nao autorizado', JSON.stringify(r));
+  check('segredo errado não grava nada', aba.linhas.length === antes);
+  r = doPost(gsValido({ segredo: undefined }));
+  check('sem segredo devolve nao autorizado', r.ok === false && r.erro === 'nao autorizado');
+
+  doPost(gsValido({
+    nome: '=HYPERLINK("x")', contato: '+55 11 99999-0000', imoveis: '-1', interesse: '@a', pagaria: '2 a 5',
+  }));
+  const perigosa = aba.linhas[aba.linhas.length - 1];
+  check("nome '=HYPERLINK(...)' ganha apóstrofo", perigosa[1] === '\'=HYPERLINK("x")', perigosa[1]);
+  check("contato '+55...' ganha apóstrofo", perigosa[2] === "'+55 11 99999-0000", perigosa[2]);
+  check("'-1' ganha apóstrofo", perigosa[3] === "'-1", perigosa[3]);
+  check("'@a' ganha apóstrofo", perigosa[4] === "'@a", perigosa[4]);
+  check("'2 a 5' fica igual", perigosa[5] === '2 a 5', perigosa[5]);
+  check("'Maria' fica igual", aba.linhas[1][1] === 'Maria', aba.linhas[1][1]);
+
+  r = doPost('{isto não é json');
+  check('corpo que não parseia devolve { ok:false }', r.ok === false, JSON.stringify(r));
+
+  check('o lock é pedido em todo doPost', lock.espera === 6, String(lock.espera));
+  check('o lock é liberado em todo caminho (sucesso, segredo errado, corpo ruim)',
+    lock.libera === lock.espera, `${lock.libera}/${lock.espera}`);
+}
+
 console.log(failures === 0 ? '\nTudo certo na pesquisa Airbnb.' : `\n${failures} falha(s).`);
 process.exit(failures === 0 ? 0 : 1);
