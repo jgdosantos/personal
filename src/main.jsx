@@ -4,6 +4,7 @@ import App from './App.jsx'
 import PropostaMarcelo from './proposta/PropostaMarcelo.jsx'
 import BriefForm from './brief/BriefForm.jsx'
 import DecisoesLigia from './decisoes/DecisoesLigia.jsx'
+import PesquisaAirbnb from './pesquisa-airbnb/PesquisaAirbnb.jsx'
 import './index.css'
 
 // Roteamento por path. O vercel.json reescreve tudo para o index, então o
@@ -17,6 +18,7 @@ const routes = {
   '/proposta-marcelo': PropostaMarcelo,
   '/brief': BriefForm,
   '/decisoes-ligia': DecisoesLigia,
+  '/pesquisa-airbnb': PesquisaAirbnb,
 }
 
 const path = window.location.pathname.replace(/\/+$/, '') || '/'

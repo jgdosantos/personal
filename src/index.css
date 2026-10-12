@@ -44,7 +44,7 @@ p {
 
 /* ----------------------------------------------------------------------
    Escopo tipográfico das páginas de cliente
-   (/proposta-marcelo, /brief, /perguntas-ligia e /decisoes-ligia)
+   (/proposta-marcelo, /brief, /perguntas-ligia, /decisoes-ligia e /pesquisa-airbnb)
 
    As regras de elemento acima moram FORA de qualquer @layer, e no Tailwind
    v4 as utilidades moram dentro de `@layer utilities`. Declaração sem layer
@@ -66,7 +66,8 @@ p {
 .proposta-page :is(h1, h2, h3, h4, p),
 .brief-page :is(h1, h2, h3, h4, p),
 .perguntas-page :is(h1, h2, h3, h4, p),
-.decisoes-page :is(h1, h2, h3, h4, p) {
+.decisoes-page :is(h1, h2, h3, h4, p),
+.pesquisa-page :is(h1, h2, h3, h4, p) {
   font-size: revert-layer;
   font-weight: revert-layer;
   line-height: revert-layer;
@@ -96,12 +97,15 @@ p {
 .perguntas-page,
 .perguntas-page *,
 .decisoes-page,
-.decisoes-page * {
+.decisoes-page *,
+.pesquisa-page,
+.pesquisa-page * {
   font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
 }
 
 .perguntas-page,
-.decisoes-page {
+.decisoes-page,
+.pesquisa-page {
   background-color: #FBFBFD;
   color: #1D1D1F;
   min-height: 100vh;
@@ -110,7 +114,9 @@ p {
 .perguntas-root,
 .perguntas-root body,
 .decisoes-root,
-.decisoes-root body {
+.decisoes-root body,
+.pesquisa-root,
+.pesquisa-root body {
   background-color: #FBFBFD;
   color-scheme: light;
 }

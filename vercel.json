@@ -35,6 +35,15 @@
                     "value": "noindex, nofollow"
                 }
             ]
+        },
+        {
+            "source": "/pesquisa-airbnb(.*)",
+            "headers": [
+                {
+                    "key": "X-Robots-Tag",
+                    "value": "noindex, nofollow"
+                }
+            ]
         }
     ],
     "rewrites": [
