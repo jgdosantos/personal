@@ -9,7 +9,7 @@
 //
 // ESM puro: sem import, sem dependência, sem API de browser nem de Node.
 
-export const LIMITES = { nome: 100, contato: 150 };
+export const LIMITES = { nome: 100, contato: 150, outroDigitos: 6 };
 
 // Textos copiados do formulario-validacao.md, na ordem em que aparecem.
 export const ESCOLHAS = [
@@ -32,9 +32,14 @@ export const ESCOLHAS = [
       'R$ 200 a 400',
       'R$ 400 a 700',
       'Mais de R$ 700',
+      'Outro',
     ],
     // Gasto que já existe, em vez de "quanto pagaria": preço hipotético quase
     // não prevê compra. Vale para todo mundo, inclusive quem rejeitou o vídeo.
+    //
+    // "Outro" abre um campo de valor (`fotosOutro`). O número vai na mesma
+    // coluna da planilha, como "Outro: R$ 350", para não mudar o Apps Script.
+    outro: 'Outro',
   },
 ];
 
@@ -47,6 +52,14 @@ export function visivel(escolha, respostas) {
 }
 
 const texto = (v, max) => (typeof v === 'string' ? v.trim().slice(0, max) : '');
+
+/** Valor em reais digitado no campo "Outro": só dígitos, maior que zero. */
+function reais(v) {
+  if (typeof v !== 'string') return null;
+  const digitos = v.replace(/\D/g, '').replace(/^0+/, '');
+  if (!digitos || digitos.length > LIMITES.outroDigitos) return null;
+  return digitos.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+}
 
 /**
  * Valida a entrada e devolve um objeto NOVO, campo a campo: chave extra do
@@ -74,6 +87,12 @@ export function validar(entrada) {
     const valor = entrada[id];
     if (typeof valor !== 'string' || !opcoes.includes(valor)) {
       return { ok: false, erro: 'resposta inválida' };
+    }
+    if (escolha.outro && valor === escolha.outro) {
+      const valorOutro = reais(entrada[`${id}Outro`]);
+      if (!valorOutro) return { ok: false, erro: 'informe o valor' };
+      dados[id] = `${escolha.outro}: R$ ${valorOutro}`;
+      continue;
     }
     dados[id] = valor;
   }

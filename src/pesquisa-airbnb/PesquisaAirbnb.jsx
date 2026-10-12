@@ -5,7 +5,7 @@ import { ESCOLHAS, LIMITES, validar, visivel } from '../../shared/pesquisaAirbnb
 // sem etapas. As perguntas de escolha vêm de shared/pesquisaAirbnb.js, a mesma
 // lista que a API usa como allowlist.
 
-const VAZIO = { nome: '', contato: '', imoveis: '', interesse: '', fotos: '', site: '' };
+const VAZIO = { nome: '', contato: '', imoveis: '', interesse: '', fotos: '', fotosOutro: '', site: '' };
 
 const CAMPO =
   'block w-full border border-[#D2D2D7] bg-[#FFFFFF] px-4 py-3 text-[17px] text-[#1D1D1F] transition-colors duration-200 focus:border-[#0071E3] focus:shadow-[0_0_0_4px_rgba(0,113,227,0.15)] focus:outline-none';
@@ -147,7 +147,7 @@ export default function PesquisaAirbnb() {
                 />
               </div>
 
-              {ESCOLHAS.filter((escolha) => visivel(escolha, form)).map(({ id, pergunta, opcoes }) => (
+              {ESCOLHAS.filter((escolha) => visivel(escolha, form)).map(({ id, pergunta, opcoes, outro }) => (
                 <fieldset key={id} className="border-0 p-0" style={{ marginInline: 0, marginBottom: 0 }}>
                   <legend className="mb-3 p-0 text-[17px] font-medium text-[#1D1D1F]">{pergunta}</legend>
                   <div className="flex flex-col gap-2">
@@ -179,6 +179,26 @@ export default function PesquisaAirbnb() {
                       );
                     })}
                   </div>
+                  {outro && form[id] === outro && (
+                    <div className="mt-3">
+                      <label htmlFor={`pesquisa-${id}-outro`} className="mb-2 block text-[15px] font-medium text-[#1D1D1F]">
+                        Quanto, em reais?
+                      </label>
+                      <input
+                        id={`pesquisa-${id}-outro`}
+                        type="text"
+                        inputMode="numeric"
+                        className={CAMPO}
+                        style={CAMPO_STYLE}
+                        placeholder="Ex.: 350"
+                        maxLength={9}
+                        required
+                        autoFocus
+                        value={form[`${id}Outro`]}
+                        onChange={(e) => mudar(`${id}Outro`, e.target.value.replace(/\D/g, ''))}
+                      />
+                    </div>
+                  )}
                 </fieldset>
               ))}
 

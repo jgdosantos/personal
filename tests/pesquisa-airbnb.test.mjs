@@ -90,11 +90,12 @@ console.error = (...args) => { logCapturado.push(args.map((a) => String(a)).join
     { id: 'interesse', pergunta: 'O que você acha de um vídeo 3D para o seu negócio?',
       opcoes: ['Quero muito', 'Quero', 'Não faz diferença', 'Não quero', 'Jamais compraria'] },
     { id: 'fotos', pergunta: 'Quanto você paga hoje por fotos profissionais de um imóvel?',
-      opcoes: ['Não pago (eu mesmo tiro)', 'Até R$ 200', 'R$ 200 a 400', 'R$ 400 a 700', 'Mais de R$ 700'] },
+      opcoes: ['Não pago (eu mesmo tiro)', 'Até R$ 200', 'R$ 200 a 400', 'R$ 400 a 700', 'Mais de R$ 700', 'Outro'],
+      outro: 'Outro' },
   ];
   check('ESCOLHAS é idêntica ao formulario-validacao.md',
     JSON.stringify(ESCOLHAS) === JSON.stringify(literal), JSON.stringify(ESCOLHAS));
-  check('LIMITES é 100 e 150', LIMITES.nome === 100 && LIMITES.contato === 150, JSON.stringify(LIMITES));
+  check('LIMITES é 100 e 150', LIMITES.nome === 100 && LIMITES.contato === 150 && LIMITES.outroDigitos === 6, JSON.stringify(LIMITES));
 }
 {
   // O gasto com fotos é perguntado a todos, qualquer que seja o interesse.
@@ -105,6 +106,19 @@ console.error = (...args) => { logCapturado.push(args.map((a) => String(a)).join
     const com = validar({ ...base, interesse, fotos: 'Até R$ 200' });
     check(`"${interesse}" grava o gasto com fotos`, com.ok === true && com.dados.fotos === 'Até R$ 200', JSON.stringify(com));
   }
+  // "Outro" exige um valor numérico e grava "Outro: R$ N" na mesma coluna.
+  const outro = (fotosOutro) => validar({ ...base, interesse: 'Quero', fotos: 'Outro', fotosOutro });
+  check('"Outro" sem valor é recusado', outro(undefined).ok === false);
+  check('"Outro" com valor vazio é recusado', outro('').ok === false);
+  check('"Outro" com zero é recusado', outro('0').ok === false);
+  check('"Outro" sem dígitos é recusado', outro('abc').ok === false);
+  check('"Outro" com mais de 6 dígitos é recusado', outro('1234567').ok === false);
+  check('"Outro" grava "Outro: R$ 350"', outro('350').dados?.fotos === 'Outro: R$ 350', JSON.stringify(outro('350')));
+  check('"Outro" formata milhar', outro('1500').dados?.fotos === 'Outro: R$ 1.500', JSON.stringify(outro('1500')));
+  check('"Outro" ignora o que não é dígito', outro('R$ 2.000').dados?.fotos === 'Outro: R$ 2.000');
+  check('"Outro" não deixa a chave fotosOutro passar', !('fotosOutro' in outro('350').dados));
+  check('valor de "Outro" é ignorado em outra opção',
+    validar({ ...base, interesse: 'Quero', fotos: 'Até R$ 200', fotosOutro: '999' }).dados?.fotos === 'Até R$ 200');
   check('a pergunta antiga "pagaria" não existe mais',
     validar({ ...base, interesse: 'Quero', pagaria: 'Menos de R$ 500' }).ok === false);
 }
@@ -233,9 +247,11 @@ for (const { id } of ESCOLHAS) {
 
 // ------------------------------------------------------- caminho feliz e env
 cenario = { tipo: 'ok' };
-for (const { id, opcoes } of ESCOLHAS) {
+for (const { id, opcoes, outro } of ESCOLHAS) {
   for (const opcao of opcoes) {
-    res = await post(corpoValido({ [id]: opcao }));
+    // "Outro" só passa com o valor digitado ao lado.
+    const extra = outro && opcao === outro ? { [`${id}Outro`]: '350' } : {};
+    res = await post(corpoValido({ [id]: opcao, ...extra }));
     check(`aceita ${id} = '${opcao}'`, res.statusCode === 200 && res.payload.ok === true,
       `${res.statusCode} ${JSON.stringify(res.payload)}`);
   }
