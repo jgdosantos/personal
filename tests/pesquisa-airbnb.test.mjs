@@ -64,7 +64,7 @@ const check = (name, cond, extra = '') => {
 
 const corpoValido = (extra = {}) => ({
   nome: NOME_SONDA, contato: CONTATO_SONDA,
-  imoveis: '2 a 5', interesse: 'Quero muito', pagaria: 'R$ 100 a 200',
+  imoveis: '2 a 5', interesse: 'Quero muito', pagaria: 'R$ 500 a 1.000',
   site: '', ...extra,
 });
 
@@ -90,8 +90,8 @@ console.error = (...args) => { logCapturado.push(args.map((a) => String(a)).join
     { id: 'interesse', pergunta: 'O que você acha de um vídeo 3D para o seu negócio?',
       opcoes: ['Quero muito', 'Quero', 'Não faz diferença', 'Não quero', 'Jamais compraria'] },
     { id: 'pagaria', pergunta: 'Quanto você pagaria por vídeo de cada imóvel?',
-      opcoes: ['Até R$ 100', 'R$ 100 a 200', 'R$ 200 a 400', 'R$ 400 a 600', 'R$ 600 a 800',
-        'R$ 800 a 1.500', 'Mais de R$ 1.500'],
+      opcoes: ['Menos de R$ 500', 'R$ 500 a 1.000', 'R$ 1.000 a 1.500', 'R$ 1.500 a 2.000',
+        'R$ 2.000 a 3.000', 'Mais de R$ 3.000'],
       mostrarSe: { interesse: ['Quero muito', 'Quero', 'Não faz diferença'] } },
   ];
   check('ESCOLHAS é idêntica ao formulario-validacao.md',
@@ -104,13 +104,13 @@ console.error = (...args) => { logCapturado.push(args.map((a) => String(a)).join
   for (const interesse of ['Quero muito', 'Quero', 'Não faz diferença']) {
     const sem = validar({ ...base, interesse });
     check(`"${interesse}" exige o preço`, sem.ok === false, JSON.stringify(sem));
-    const com = validar({ ...base, interesse, pagaria: 'R$ 800 a 1.500' });
-    check(`"${interesse}" grava o preço`, com.ok === true && com.dados.pagaria === 'R$ 800 a 1.500', JSON.stringify(com));
+    const com = validar({ ...base, interesse, pagaria: 'R$ 1.500 a 2.000' });
+    check(`"${interesse}" grava o preço`, com.ok === true && com.dados.pagaria === 'R$ 1.500 a 2.000', JSON.stringify(com));
   }
   for (const interesse of ['Não quero', 'Jamais compraria']) {
     const sem = validar({ ...base, interesse });
     check(`"${interesse}" dispensa o preço`, sem.ok === true && sem.dados.pagaria === '', JSON.stringify(sem));
-    const com = validar({ ...base, interesse, pagaria: 'Mais de R$ 1.500' });
+    const com = validar({ ...base, interesse, pagaria: 'Mais de R$ 3.000' });
     check(`"${interesse}" descarta preço enviado`, com.ok === true && com.dados.pagaria === '', JSON.stringify(com));
   }
   check('"Não pagaria" não existe mais',
@@ -394,7 +394,7 @@ check('a rota não usa as variáveis de outras planilhas',
   );
   const gsValido = (extra = {}) => ({
     segredo: SEGREDO_GS, nome: 'Maria', contato: 'maria@exemplo.com',
-    imoveis: '2 a 5', interesse: 'Quero', pagaria: 'Até R$ 100', ...extra,
+    imoveis: '2 a 5', interesse: 'Quero', pagaria: 'Menos de R$ 500', ...extra,
   });
 
   check('o .gs tem um SEGREDO a trocar', SEGREDO_GS.length > 0);
@@ -416,7 +416,7 @@ check('a rota não usa as variáveis de outras planilhas',
   const linha = aba && aba.linhas[1];
   check('a linha é [Date, nome, contato, imoveis, interesse, pagaria]',
     linha && Object.prototype.toString.call(linha[0]) === '[object Date]'
-      && JSON.stringify(linha.slice(1)) === JSON.stringify(['Maria', 'maria@exemplo.com', '2 a 5', 'Quero', 'Até R$ 100']),
+      && JSON.stringify(linha.slice(1)) === JSON.stringify(['Maria', 'maria@exemplo.com', '2 a 5', 'Quero', 'Menos de R$ 500']),
     JSON.stringify(linha));
 
   r = doPost(gsValido({ nome: 'Joana' }));

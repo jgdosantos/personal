@@ -27,13 +27,12 @@ export const ESCOLHAS = [
     id: 'pagaria',
     pergunta: 'Quanto você pagaria por vídeo de cada imóvel?',
     opcoes: [
-      'Até R$ 100',
-      'R$ 100 a 200',
-      'R$ 200 a 400',
-      'R$ 400 a 600',
-      'R$ 600 a 800',
-      'R$ 800 a 1.500',
-      'Mais de R$ 1.500',
+      'Menos de R$ 500',
+      'R$ 500 a 1.000',
+      'R$ 1.000 a 1.500',
+      'R$ 1.500 a 2.000',
+      'R$ 2.000 a 3.000',
+      'Mais de R$ 3.000',
     ],
     // Só pergunta preço a quem não rejeitou o produto. "Não quero" e "Jamais
     // compraria" pulam a pergunta: um chute de preço de quem não compraria
