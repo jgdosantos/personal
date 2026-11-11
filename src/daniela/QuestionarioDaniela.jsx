@@ -98,7 +98,7 @@ export default function QuestionarioDaniela() {
   const mudouDesdeEnvio = ultimoEnvio !== null && ultimoEnvio !== serializar(respostas);
 
   useEffect(() => {
-    document.title = 'Perguntas para o site da Dra. Daniela';
+    document.title = 'Perguntas para o site · Dra. Daniela Morais';
     const raiz = document.documentElement;
     const antes = { html: raiz.style.backgroundColor, body: document.body.style.backgroundColor };
     raiz.style.backgroundColor = COR.fundo;

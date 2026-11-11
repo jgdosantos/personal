@@ -57,6 +57,10 @@
     ],
     "rewrites": [
         {
+            "source": "/daniela-morais/?",
+            "destination": "/daniela-morais.html"
+        },
+        {
             "source": "/((?!api/).*)",
             "destination": "/index.html"
         }
